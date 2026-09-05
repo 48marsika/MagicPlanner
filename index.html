@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#2b170f">
-<title>Мой волшебный планер V3</title>
+<title>Мой волшебный планер V4 Cloud</title>
 <style>
 :root{
   --panel-alpha:.93;
@@ -221,6 +221,60 @@ body[data-theme="christmas"] .hero,body[data-theme="spring"] .hero,body[data-the
   .habit-table th,.habit-table td{padding:7px 4px}
   .habit-table input[type=checkbox]{width:25px;height:25px}
 }
+
+/* CLOUD SYNC */
+.cloud-status{
+  position:fixed;right:12px;top:12px;z-index:80;
+  display:flex;align-items:center;gap:7px;
+  background:rgba(39,22,15,.90);color:#fff3e6;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:999px;padding:8px 11px;font-size:12px;
+  box-shadow:0 7px 20px rgba(0,0,0,.18);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+}
+.cloud-status[data-state="ok"]{background:rgba(40,92,68,.92)}
+.cloud-status[data-state="sync"]{background:rgba(117,77,34,.94)}
+.cloud-status[data-state="offline"]{background:rgba(95,73,61,.94)}
+.cloud-status[data-state="error"]{background:rgba(112,45,45,.94)}
+.auth-overlay{
+  position:fixed;inset:0;z-index:100;
+  background:linear-gradient(160deg,rgba(37,16,11,.96),rgba(67,25,16,.97) 46%,rgba(21,15,31,.98));
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;
+}
+.auth-overlay.hidden{display:none}
+.auth-card{
+  width:min(420px,100%);
+  background:rgba(255,248,239,.97);
+  border-radius:26px;padding:22px;
+  box-shadow:0 22px 60px rgba(0,0,0,.35);
+  border:1px solid rgba(255,255,255,.35);
+}
+.auth-card h2{font-family:Georgia,serif;font-size:32px;margin:0 0 6px;font-weight:500}
+.auth-card p{color:#806d61;margin:0 0 15px;font-size:13px;line-height:1.45}
+.auth-card label{display:block;font-size:12px;color:#806d61;margin:10px 0 5px}
+.auth-card input{
+  width:100%;border:1px solid rgba(67,43,30,.18);
+  background:#fffaf5;border-radius:13px;padding:12px;
+  color:#2c1d16;font:inherit;
+}
+.auth-card button{
+  width:100%;border:0;border-radius:14px;padding:12px 14px;
+  background:#5d341e;color:white;margin-top:13px;font:inherit;font-weight:700;
+}
+.auth-error{min-height:18px;color:#9a3d3d;font-size:12px;margin-top:8px}
+.cloud-account{
+  margin-top:12px;padding-top:12px;border-top:1px solid rgba(67,43,30,.12);
+  display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap
+}
+.cloud-account .email{font-size:12px;color:#806d61;overflow-wrap:anywhere}
+.cloud-account button{
+  width:auto;margin:0;background:#eadbc9;color:#402d22;padding:8px 11px;font-weight:600
+}
+@media(max-width:520px){
+  .cloud-status{top:8px;right:8px;font-size:11px;padding:7px 9px}
+}
+
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -455,6 +509,24 @@ body[data-theme="christmas"] .hero,body[data-theme="spring"] .hero,body[data-the
   </section>
 </div>
 
+
+<div id="cloudStatus" class="cloud-status" data-state="offline">📱 Локально</div>
+
+<div id="authOverlay" class="auth-overlay">
+  <div class="auth-card">
+    <h2>☁️ MagicPlanner</h2>
+    <p>Войди в свой аккаунт, чтобы цели, привычки, Казна и параметры синхронизировались между телефоном, планшетом и ноутбуком.</p>
+    <form id="authForm">
+      <label>Email</label>
+      <input id="authEmail" type="email" autocomplete="username" value="48marsika@gmail.com" required>
+      <label>Пароль</label>
+      <input id="authPassword" type="password" autocomplete="current-password" required>
+      <button type="submit">Войти и синхронизировать</button>
+      <div id="authError" class="auth-error"></div>
+    </form>
+  </div>
+</div>
+
 <nav class="tabbar">
   <button class="navbtn active" data-view="week"><span>📅</span><span>Неделя</span></button>
   <button class="navbtn" data-view="habits"><span>🌱</span><span>Привычки</span></button>
@@ -541,7 +613,12 @@ function loadState(){
   }catch(e){}
   return clone(defaults);
 }
-function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function save(){
+  localStorage.setItem(KEY,JSON.stringify(state));
+  if(window.MagicPlannerCloud && typeof window.MagicPlannerCloud.queueSave==='function'){
+    window.MagicPlannerCloud.queueSave(state);
+  }
+}
 function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function toast(t='Сохранено'){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1200)}
 function money(n){return new Intl.NumberFormat('ru-RU').format(Math.round(Number(n)||0))+' ₽'}
@@ -843,6 +920,19 @@ document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{
 
 document.getElementById('txDate').value=new Date().toISOString().slice(0,10);
 
+
+window.MagicPlannerBridge = {
+  getState:()=>clone(state),
+  setState:(incoming)=>{
+    state=deepMerge(defaults,incoming||{});
+    localStorage.setItem(KEY,JSON.stringify(state));
+    renderAll();
+  },
+  saveLocal:()=>{
+    localStorage.setItem(KEY,JSON.stringify(state));
+  }
+};
+
 function renderAll(){
   renderWeek();
   renderHabits();
@@ -853,6 +943,184 @@ function renderAll(){
 }
 renderAll();
 </script>
+
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut,
+  setPersistence,
+  browserLocalPersistence
+} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  onSnapshot,
+  serverTimestamp,
+  enableIndexedDbPersistence
+} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDig-md4lVF-lcfDh0XU0GOVcKy-hajE4k",
+  authDomain: "magicplanner-f19c1.firebaseapp.com",
+  projectId: "magicplanner-f19c1",
+  storageBucket: "magicplanner-f19c1.firebasestorage.app",
+  messagingSenderId: "509280905708",
+  appId: "1:509280905708:web:c0e1edb87837a8b93ff8c9",
+  measurementId: "G-H8XRBM4HHK"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+try { await setPersistence(auth, browserLocalPersistence); } catch(e) {}
+try { await enableIndexedDbPersistence(db); } catch(e) {}
+
+const overlay = document.getElementById('authOverlay');
+const form = document.getElementById('authForm');
+const emailInput = document.getElementById('authEmail');
+const passInput = document.getElementById('authPassword');
+const errorBox = document.getElementById('authError');
+const statusEl = document.getElementById('cloudStatus');
+
+let currentUser = null;
+let unsubscribeDoc = null;
+let saveTimer = null;
+let applyingRemote = false;
+let lastRemoteJSON = "";
+
+function setStatus(state, text){
+  statusEl.dataset.state = state;
+  statusEl.textContent = text;
+}
+
+function plannerDocRef(uid){
+  return doc(db, "users", uid, "planner", "state");
+}
+
+async function writeCloud(state){
+  if(!currentUser || applyingRemote) return;
+  setStatus('sync','☁️ Сохраняю…');
+  try{
+    await setDoc(plannerDocRef(currentUser.uid),{
+      state,
+      updatedAt: serverTimestamp(),
+      schemaVersion: 4
+    },{merge:true});
+    setStatus('ok','☁️ Синхронизировано');
+  }catch(err){
+    console.error(err);
+    setStatus(navigator.onLine?'error':'offline',navigator.onLine?'⚠️ Ошибка облака':'📱 Офлайн');
+  }
+}
+
+window.MagicPlannerCloud = {
+  queueSave(state){
+    if(!currentUser) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(()=>writeCloud(JSON.parse(JSON.stringify(state))),650);
+  }
+};
+
+form.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  errorBox.textContent='';
+  const email=emailInput.value.trim();
+  const password=passInput.value;
+  try{
+    setStatus('sync','🔐 Вхожу…');
+    await signInWithEmailAndPassword(auth,email,password);
+    passInput.value='';
+  }catch(err){
+    console.error(err);
+    setStatus('error','⚠️ Вход не выполнен');
+    const map={
+      'auth/invalid-credential':'Неверный email или пароль.',
+      'auth/invalid-email':'Проверь email.',
+      'auth/too-many-requests':'Слишком много попыток. Попробуй позже.',
+      'auth/network-request-failed':'Нет соединения с Firebase.'
+    };
+    errorBox.textContent=map[err.code]||'Не удалось войти. Проверь email, пароль и интернет.';
+  }
+});
+
+onAuthStateChanged(auth, async (user)=>{
+  if(unsubscribeDoc){unsubscribeDoc();unsubscribeDoc=null;}
+  currentUser=user||null;
+
+  if(!user){
+    overlay.classList.remove('hidden');
+    setStatus('offline','📱 Локально');
+    return;
+  }
+
+  overlay.classList.add('hidden');
+  setStatus('sync','☁️ Загружаю…');
+
+  const ref=plannerDocRef(user.uid);
+
+  try{
+    const snap=await getDoc(ref);
+    if(snap.exists() && snap.data().state){
+      applyingRemote=true;
+      window.MagicPlannerBridge.setState(snap.data().state);
+      lastRemoteJSON=JSON.stringify(snap.data().state);
+      applyingRemote=false;
+      setStatus('ok','☁️ Синхронизировано');
+    }else{
+      const local=window.MagicPlannerBridge.getState();
+      await setDoc(ref,{state:local,updatedAt:serverTimestamp(),schemaVersion:4},{merge:true});
+      lastRemoteJSON=JSON.stringify(local);
+      setStatus('ok','☁️ Локальные данные перенесены');
+    }
+
+    unsubscribeDoc=onSnapshot(ref,(snap)=>{
+      if(!snap.exists() || !snap.data().state) return;
+      const remote=snap.data().state;
+      const json=JSON.stringify(remote);
+      if(json===lastRemoteJSON) return;
+      lastRemoteJSON=json;
+      const localJSON=JSON.stringify(window.MagicPlannerBridge.getState());
+      if(json!==localJSON){
+        applyingRemote=true;
+        window.MagicPlannerBridge.setState(remote);
+        applyingRemote=false;
+        setStatus('ok','☁️ Обновлено из облака');
+      }
+    },(err)=>{
+      console.error(err);
+      setStatus('error','⚠️ Нет доступа к облаку');
+    });
+
+  }catch(err){
+    console.error(err);
+    setStatus('error','⚠️ Ошибка синхронизации');
+  }
+});
+
+statusEl.addEventListener('click', async ()=>{
+  if(!currentUser) return;
+  const ok=confirm(`Аккаунт: ${currentUser.email}\n\nВыйти из облачной синхронизации на этом устройстве?`);
+  if(ok) await signOut(auth);
+});
+
+window.addEventListener('offline',()=>setStatus('offline','📱 Офлайн'));
+window.addEventListener('online',()=>{
+  if(currentUser){
+    setStatus('sync','☁️ Синхронизация…');
+    window.MagicPlannerCloud.queueSave(window.MagicPlannerBridge.getState());
+  }else{
+    setStatus('offline','📱 Локально');
+  }
+});
+</script>
+
 
 <script>
 if ('serviceWorker' in navigator) {
