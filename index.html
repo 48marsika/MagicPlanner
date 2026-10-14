@@ -198,6 +198,35 @@ body[data-theme="christmas"] .hero,body[data-theme="spring"] .hero,body[data-the
 .habit-hint{margin-top:10px;line-height:1.5}
 @media(max-width:430px){.habit-summary-list{grid-template-columns:1fr}.habit-today-table th,.habit-today-table td{padding:10px 6px}.habit-today-table th:nth-child(2),.habit-today-table td:nth-child(2){width:72px}}
 
+/* PAYMENT-MONTH-V3: в Казне виден один выбранный месяц, по умолчанию сегодняшний. */
+.payments-section-heading{margin-bottom:14px;flex-wrap:wrap}
+.payments-section-heading h3{font-size:22px}
+.payments-month-nav{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px;margin-bottom:12px;border:1px solid var(--line);border-radius:16px;background:rgba(255,249,243,.82)}
+.payments-month-nav strong{font-family:Georgia,serif;font-size:19px;font-weight:700;color:var(--text);text-align:center;min-width:165px}
+.payments-month-nav button{min-height:40px}
+.payments-month-nav #paymentMonthToday{margin-left:auto}
+.payments-month-nav button:disabled{opacity:.55;cursor:default}
+.payments-month-wrap{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:rgba(255,255,255,.36)}
+.payments-month-table{border-collapse:collapse;width:100%;table-layout:fixed}
+.payments-month-table th,.payments-month-table td{border-bottom:1px solid var(--line);padding:11px 10px;text-align:center;background:rgba(255,250,244,.72)}
+.payments-month-table th{background:rgba(235,219,201,.90);font-size:13px;color:var(--text)}
+.payments-month-table tr:last-child td{border-bottom:0}
+.payments-month-table th:first-child,.payments-month-table td:first-child{text-align:left;width:auto}
+.payments-month-table th:nth-child(2),.payments-month-table td:nth-child(2){width:115px}
+.payments-month-table th:last-child,.payments-month-table td:last-child{width:48px}
+.payments-month-table .pay-name{width:100%;min-width:0}
+.payments-month-table .check{width:28px;height:28px;vertical-align:middle;cursor:pointer}
+.payments-month-summary{padding:9px 4px 0;line-height:1.45}
+@media(max-width:430px){
+  .payments-month-nav{gap:5px;padding:9px 7px}
+  .payments-month-nav strong{min-width:105px;font-size:16px;flex:1}
+  .payments-month-nav button{padding:9px 10px}
+  .payments-month-nav #paymentMonthToday{margin-left:0}
+  .payments-month-table th,.payments-month-table td{padding:10px 6px}
+  .payments-month-table th:nth-child(2),.payments-month-table td:nth-child(2){width:82px}
+  .payments-month-table th:last-child,.payments-month-table td:last-child{width:42px}
+}
+
 .tabbar{
   position:fixed;bottom:0;left:50%;transform:translateX(-50%);z-index:40;
   width:min(100%,var(--content-width));display:grid;grid-template-columns:repeat(6,1fr);gap:3px;
@@ -354,22 +383,28 @@ body[data-theme="christmas"] .hero,body[data-theme="spring"] .hero,body[data-the
         <button class="btn secondary" data-treasury-tab="funds">Мои копилки</button>
       </div>
       <div id="treasury-payments">
-        <div class="row-between" style="margin-bottom:10px">
-          <div><h3 style="font-family:Georgia,serif;margin:0">Обязательные платежи</h3><div class="small">Галочки хранятся отдельно по годам</div></div>
-          <div class="period-select">
-            <label for="treasuryYearSelect" class="small">Год</label>
-            <select id="treasuryYearSelect"></select>
-            <button class="btn secondary" id="addPayment">+ Платёж</button>
+        <div class="row-between payments-section-heading">
+          <div>
+            <h3 style="font-family:Georgia,serif;margin:0">Обязательные платежи</h3>
+            <div class="small">Открывается текущий месяц. Для других месяцев используй стрелки.</div>
           </div>
+          <button class="btn secondary" id="addPayment">+ Платёж</button>
         </div>
-        <div class="scrollbox">
-          <table class="sticky-table">
-            <thead><tr><th>Наименование</th><th>Янв</th><th>Фев</th><th>Мар</th><th>Апр</th><th>Май</th><th>Июн</th><th>Июл</th><th>Авг</th><th>Сен</th><th>Окт</th><th>Ноя</th><th>Дек</th><th></th></tr></thead>
+        <div class="payments-month-nav" aria-label="Переключение месяца платежей">
+          <button class="btn ghost" type="button" id="paymentMonthPrev" aria-label="Предыдущий месяц">‹</button>
+          <strong id="paymentMonthTitle" aria-live="polite">Текущий месяц</strong>
+          <button class="btn ghost" type="button" id="paymentMonthNext" aria-label="Следующий месяц">›</button>
+          <button class="btn secondary" type="button" id="paymentMonthToday">Сегодня</button>
+        </div>
+        <div class="payments-month-wrap">
+          <table class="payments-month-table">
+            <thead><tr><th>Наименование</th><th id="paymentMonthColumn">Месяц</th><th aria-label="Удалить"></th></tr></thead>
             <tbody id="paymentsBody"></tbody>
           </table>
         </div>
+        <div class="small payments-month-summary" id="paymentMonthSummary" aria-live="polite"></div>
       </div>
-      <div id="treasury-funds" style="display:none">
+            <div id="treasury-funds" style="display:none">
         <div class="row-between" style="margin-bottom:10px">
           <div><h3 style="font-family:Georgia,serif;margin:0">Мои копилки</h3><div class="small">Своя картинка, название, цель и сумма</div></div>
           <button class="btn secondary" id="addFund">+ Копилка</button>
@@ -684,30 +719,71 @@ function renderGoals(){
 }
 document.getElementById('addYearGoal').onclick=()=>{state.yearGoals.push({text:'',progress:0});save();renderGoals();toast('Цель добавлена')}
 
-/* TREASURY: обязательные платежи по годам */
-const tYear=document.getElementById('treasuryYearSelect');
-const initialTreasuryYear=Number(state.treasury.selectedYear)||new Date().getFullYear();
-for(let y=Math.min(2024,initialTreasuryYear);y<=Math.max(2035,initialTreasuryYear);y++){
-  const o=document.createElement('option');o.value=y;o.textContent=y;tYear.appendChild(o);
-}
-tYear.onchange=()=>{state.treasury.selectedYear=+tYear.value;save();renderPayments()};
+/* PAYMENT-MONTH-V3: текущий месяц сразу при входе, история не удаляется. */
+const paymentToday=new Date();
+let paymentPeriod={y:paymentToday.getFullYear(),m:paymentToday.getMonth()};
+let lastPaymentCalendarMonth=paymentPeriod.y+'-'+paymentPeriod.m;
+function paymentMonthKey(y,m){return `${y}-${m}`} /* формат совпадает со старыми ключами */
 function parseNum(v){return Number(String(v).replace(/\s/g,'').replace(',','.'))||0}
-
+function updatePaymentSummary(){
+  const k=paymentMonthKey(paymentPeriod.y,paymentPeriod.m);
+  const ps=state.treasury.payments||[];
+  const paid=ps.filter(p=>p.checks&&p.checks[k]).length;
+  document.getElementById('paymentMonthSummary').textContent=`Отмечено: ${paid} из ${ps.length} платежей за ${monthNames[paymentPeriod.m].toLowerCase()} ${paymentPeriod.y} года.`;
+}
 function renderPayments(){
-  const y=state.treasury.selectedYear;
+  const y=paymentPeriod.y,m=paymentPeriod.m,k=paymentMonthKey(y,m);
+  document.getElementById('paymentMonthTitle').textContent=monthNames[m]+' '+y;
+  document.getElementById('paymentMonthColumn').textContent=monthNames[m];
+  const now=new Date();
+  document.getElementById('paymentMonthToday').disabled=(y===now.getFullYear()&&m===now.getMonth());
   const tb=document.getElementById('paymentsBody');tb.innerHTML='';
   state.treasury.payments.forEach((p,ri)=>{
+    if(!p.checks||typeof p.checks!=='object')p.checks={};
     const tr=document.createElement('tr');
-    let html=`<td><input class="pay-name" value="${esc(p.name)}"></td>`;
-    for(let m=0;m<12;m++){const k=`${y}-${m}`;html+=`<td><input class="check" type="checkbox" data-k="${k}" ${p.checks[k]?'checked':''}></td>`}
-    html+='<td><button class="icon-btn del">×</button></td>';tr.innerHTML=html;
-    tr.querySelector('.pay-name').oninput=e=>{p.name=e.target.value;save()}
-    tr.querySelectorAll('.check').forEach(c=>c.onchange=e=>{p.checks[e.target.dataset.k]=e.target.checked;save()})
-    tr.querySelector('.del').onclick=()=>{state.treasury.payments.splice(ri,1);save();renderPayments()}
+    tr.innerHTML=`<td><input class="pay-name" aria-label="Название платежа" value="${esc(p.name)}"></td>
+      <td><input class="check" type="checkbox" aria-label="Оплачено за ${monthNames[m]} ${y}: ${esc(p.name)}" ${p.checks[k]?'checked':''}></td>
+      <td><button class="icon-btn del" aria-label="Удалить платёж" title="Удалить платёж">×</button></td>`;
+    tr.querySelector('.pay-name').oninput=e=>{
+      p.name=e.target.value;
+      tr.querySelector('.check').setAttribute('aria-label',`Оплачено за ${monthNames[m]} ${y}: ${p.name}`);
+      save();
+    };
+    tr.querySelector('.check').onchange=e=>{p.checks[k]=e.target.checked;save();updatePaymentSummary()};
+    tr.querySelector('.del').onclick=()=>{state.treasury.payments.splice(ri,1);save();renderPayments()};
     tb.appendChild(tr);
   });
+  updatePaymentSummary();
 }
-document.getElementById('addPayment').onclick=()=>{state.treasury.payments.push({name:'Новый платёж',checks:{}});save();renderPayments();toast('Платёж добавлен')}
+function shiftPaymentMonth(delta){
+  const d=new Date(paymentPeriod.y,paymentPeriod.m+delta,1);
+  paymentPeriod={y:d.getFullYear(),m:d.getMonth()};
+  renderPayments();
+}
+function resetPaymentToToday(){
+  const now=new Date();
+  paymentPeriod={y:now.getFullYear(),m:now.getMonth()};
+  lastPaymentCalendarMonth=paymentPeriod.y+'-'+paymentPeriod.m;
+  renderPayments();
+}
+function checkPaymentMonthRollover(){
+  const now=new Date(),key=now.getFullYear()+'-'+now.getMonth();
+  if(key===lastPaymentCalendarMonth)return;
+  const [py,pm]=lastPaymentCalendarMonth.split('-').map(Number);
+  const showingOldCurrent=(paymentPeriod.y===py&&paymentPeriod.m===pm);
+  lastPaymentCalendarMonth=key;
+  if(showingOldCurrent)resetPaymentToToday();
+}
+setInterval(checkPaymentMonthRollover,60000);
+window.addEventListener('focus',checkPaymentMonthRollover);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkPaymentMonthRollover()});
+document.getElementById('paymentMonthPrev').onclick=()=>shiftPaymentMonth(-1);
+document.getElementById('paymentMonthNext').onclick=()=>shiftPaymentMonth(1);
+document.getElementById('paymentMonthToday').onclick=resetPaymentToToday;
+document.getElementById('addPayment').onclick=()=>{
+  state.treasury.payments.push({name:'Новый платёж',checks:{}});
+  save();renderPayments();toast('Платёж добавлен');
+}
 
 function resizeImage(file,max=700){
   return new Promise((resolve,reject)=>{
@@ -753,12 +829,12 @@ function renderFunds(){
 document.getElementById('addFund').onclick=()=>{state.treasury.funds.push({name:'Новая копилка',goal:'',current:0,target:0,image:''});save();renderFunds();toast('Копилка добавлена')}
 
 function renderTreasury(){
-  tYear.value=state.treasury.selectedYear;
   renderPayments();
   renderFunds();
 }
 document.querySelectorAll('[data-treasury-tab]').forEach(b=>b.onclick=()=>{
   const t=b.dataset.treasuryTab;
+  if(t==='payments')resetPaymentToToday();
   ['payments','funds'].forEach(x=>document.getElementById('treasury-'+x).style.display=x===t?'block':'none');
   document.querySelectorAll('[data-treasury-tab]').forEach(z=>z.className='btn '+(z===b?'':'secondary'));
 });
@@ -810,6 +886,7 @@ document.getElementById('resetBtn').onclick=()=>{if(confirm('Удалить вс
 
 /* NAV */
 document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{
+  if(b.dataset.view==='treasury')resetPaymentToToday();
   document.querySelectorAll('.navbtn').forEach(x=>x.classList.remove('active'));b.classList.add('active');
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(b.dataset.view).classList.add('active');
   window.scrollTo({top:0,behavior:'smooth'});
