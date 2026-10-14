@@ -119,11 +119,11 @@ body[data-theme="christmas"] .hero,body[data-theme="spring"] .hero,body[data-the
 .day-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .day-head h3{font-family:Georgia,serif;font-size:22px;margin:0}
 .task-row,.goal-row,.fund-row,.transaction-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)}
-.goal-progress{display:flex;align-items:center;gap:7px;min-width:160px}
-.goal-progress input[type=range]{width:100px}
-.goal-progress output{width:40px;text-align:right}
-.goal-tabs,.treasury-tabs{display:flex;gap:8px;overflow:auto;margin-bottom:12px;padding-bottom:2px}
-.goal-tabs .btn,.treasury-tabs .btn{white-space:nowrap}
+.goal-row .goaltext{flex:1;min-width:0}
+.goal-row .goaltext.goal-done{opacity:.65;text-decoration:line-through}
+.goal-row .check{flex-shrink:0}
+.treasury-tabs{display:flex;gap:8px;overflow:auto;margin-bottom:12px;padding-bottom:2px}
+.treasury-tabs .btn{white-space:nowrap}
 .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .kpi{background:rgba(255,252,247,.86);border:1px solid var(--line);border-radius:18px;padding:13px}
 .kpi .label{font-size:12px;color:var(--muted)}
@@ -155,7 +155,7 @@ body[data-theme="christmas"] .hero,body[data-theme="spring"] .hero,body[data-the
 .transaction-row .amount{margin-left:auto;font-weight:700}
 .amount.income{color:#2f7651}.amount.expense{color:#9a3d3d}
 .notes-box{min-height:92px;resize:vertical}
-.body-table{border-collapse:collapse;width:100%;min-width:690px}
+.body-table{border-collapse:collapse;width:100%;min-width:560px}
 .body-table th,.body-table td{border:1px solid var(--line);padding:8px;text-align:center}
 .body-table th{background:rgba(235,219,201,.88)}
 .body-table td:first-child{font-weight:700;background:rgba(255,249,243,.95)}
@@ -173,20 +173,30 @@ body[data-theme="christmas"] .hero,body[data-theme="spring"] .hero,body[data-the
 .device-btn.active{background:#eadbc9;font-weight:700}
 .view{display:none}.view.active{display:block}
 
-/* habit weekly paging */
-.habit-week-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap}
-.habit-week-label{font-weight:700}
-.habit-week-dots{display:flex;gap:5px;flex-wrap:wrap}
-.habit-week-dot{width:10px;height:10px;border-radius:50%;background:#dac7b6}
-.habit-week-dot.active{background:var(--accent-dark)}
-.habit-table{width:100%;border-collapse:collapse;table-layout:fixed}
-.habit-table th,.habit-table td{border:1px solid var(--line);padding:8px;text-align:center}
-.habit-table th{background:rgba(235,219,201,.9);font-size:11px}
-.habit-table th:first-child,.habit-table td:first-child{text-align:left;width:34%;background:rgba(255,248,240,.99)}
-.habit-table input[type=checkbox]{width:27px;height:27px}
-.habit-table .habit-name{width:100%}
-.habit-nav-arrows{display:flex;gap:8px}
-.habit-nav-arrows .btn{min-width:48px}
+/* Habit statistics follow the local calendar. */
+/* HABITS: только сегодняшний день и статистика */
+.habit-summary-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px;margin:10px 0 18px}
+.habit-summary-card{background:rgba(255,252,247,.88);border:1px solid var(--line);border-radius:16px;padding:15px;min-width:0}
+.habit-summary-name{font-weight:750;color:var(--text);font-size:17px;overflow-wrap:anywhere;margin-bottom:10px}
+.habit-metric{margin-top:11px}
+.habit-metric-row{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.habit-metric-label{font-size:13px;color:var(--text);font-weight:600}
+.habit-metric-percent{font-size:20px;font-weight:750;color:var(--text);font-variant-numeric:tabular-nums}
+.habit-metric-track{height:9px;overflow:hidden;background:#e9dacc;border-radius:999px;margin:6px 0}
+.habit-metric-track>span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#bf9d72);border-radius:999px;transition:width .18s ease}
+.habit-metric-note{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.habit-today-heading{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0 12px}
+.habit-today-heading strong{font-family:Georgia,serif;font-size:19px;color:var(--text)}
+.habit-today-table{border-collapse:collapse;width:100%;table-layout:fixed}
+.habit-today-table th,.habit-today-table td{border:1px solid var(--line);padding:11px 9px;text-align:left}
+.habit-today-table th{background:rgba(235,219,201,.9);color:var(--text);font-size:13px}
+.habit-today-table th:nth-child(2),.habit-today-table td:nth-child(2){width:88px;text-align:center}
+.habit-today-table th:last-child,.habit-today-table td:last-child{width:48px;text-align:center}
+.habit-today-table td:first-child{background:rgba(255,249,243,.95)}
+.habit-today-table .habit-name{display:block;width:100%;font-size:15px;min-width:0}
+.habit-today-table input[type=checkbox]{width:29px;height:29px;accent-color:var(--accent);vertical-align:middle;cursor:pointer}
+.habit-hint{margin-top:10px;line-height:1.5}
+@media(max-width:430px){.habit-summary-list{grid-template-columns:1fr}.habit-today-table th,.habit-today-table td{padding:10px 6px}.habit-today-table th:nth-child(2),.habit-today-table td:nth-child(2){width:72px}}
 
 .tabbar{
   position:fixed;bottom:0;left:50%;transform:translateX(-50%);z-index:40;
@@ -304,114 +314,53 @@ body[data-theme="christmas"] .hero,body[data-theme="spring"] .hero,body[data-the
   <section id="habits" class="view">
     <div class="card">
       <div class="section-title">
-        <div><h2>🌱 Привычки</h2><div class="sub">7 дней за раз — без мучительной прокрутки пальцем</div></div>
+        <div><h2>🌱 Привычки</h2><div class="sub">Сегодняшние привычки и твой прогресс за месяц и год</div></div>
         <button class="btn" id="addHabitBtn">+ Привычка</button>
       </div>
-      <div class="month-nav">
-        <button class="btn ghost" id="habitMonthPrev">‹ месяц</button>
-        <strong id="habitMonthLabel"></strong>
-        <button class="btn ghost" id="habitMonthNext">месяц ›</button>
+      <div class="habit-summary-list" id="habitProgress" aria-label="Прогресс по привычкам"></div>
+      <div class="habit-today-heading">
+        <strong id="habitTodayDate">Сегодня</strong>
+        <span class="small">Отмечай выполнение одним нажатием</span>
       </div>
-      <div class="habit-week-head">
-        <div>
-          <div class="habit-week-label" id="habitWeekLabel"></div>
-          <div class="habit-week-dots" id="habitWeekDots"></div>
-        </div>
-        <div class="habit-nav-arrows">
-          <button class="btn secondary" id="habitWeekPrev">‹</button>
-          <button class="btn secondary" id="habitWeekNext">›</button>
-        </div>
-      </div>
-      <div class="scrollbox" style="overflow:hidden">
-        <table class="habit-table">
-          <thead id="habitHead"></thead>
+      <div class="scrollbox">
+        <table class="habit-today-table">
+          <thead><tr><th>Привычка</th><th>Сегодня</th><th aria-label="Удалить"></th></tr></thead>
           <tbody id="habitsBody"></tbody>
         </table>
       </div>
-      <div class="small" style="margin-top:9px">Переключай недели стрелками. Так все галочки крупные и удобно нажимаются пальцем.</div>
+      <div class="small habit-hint">Учитываются все сохранённые галочки, включая прошлые дни. Сегодняшняя отметка автоматически обновляет проценты.</div>
     </div>
   </section>
 
   <section id="goals" class="view">
     <div class="card">
       <div class="section-title">
-        <div><h2>🎯 Цели</h2><div class="sub">На год и на каждый месяц</div></div>
-        <span class="badge">2026–2027</span>
+        <div><h2>🎯 Цели</h2><div class="sub">Мои цели на год</div></div>
+        <span class="badge" id="yearGoalCount">Выполнено 0 из 0</span>
       </div>
-      <div class="goal-tabs">
-        <button class="btn" data-goal-tab="year">На год</button>
-        <button class="btn secondary" data-goal-tab="month">На месяц</button>
-      </div>
-      <div id="yearGoalsPanel">
-        <div class="row-between"><strong>Цели на год</strong><button class="btn secondary big" id="addYearGoal">+ Добавить цель</button></div>
-        <div id="yearGoals"></div>
-      </div>
-      <div id="monthGoalsPanel" style="display:none">
-        <div class="month-nav">
-          <button class="btn ghost" id="goalPrev">‹</button>
-          <strong id="goalMonthLabel"></strong>
-          <button class="btn ghost" id="goalNext">›</button>
-        </div>
-        <div class="row-between"><strong>Цели месяца</strong><button class="btn secondary big" id="addMonthGoal">+ Добавить цель</button></div>
-        <div id="monthGoals"></div>
-      </div>
+      <div class="row-between"><strong>Цели на год</strong><button class="btn secondary big" id="addYearGoal">+ Добавить цель</button></div>
+      <div id="yearGoals"></div>
     </div>
   </section>
+
 
   <section id="treasury" class="view">
     <div class="card">
       <div class="section-title">
-        <div><h2>💰 Казна</h2><div class="sub">Месяц, год, доходы, расходы, платежи и копилки</div></div>
+        <div><h2>💰 Казна</h2><div class="sub">Обязательные платежи и мои копилки</div></div>
       </div>
-
-      <div class="month-nav" style="justify-content:flex-start">
-        <button class="btn secondary" id="treasuryPrev">‹</button>
-        <select id="treasuryMonthSelect"></select>
-        <select id="treasuryYearSelect"></select>
-        <button class="btn secondary" id="treasuryNext">›</button>
-        <button class="btn ghost" id="treasuryToday">Текущий месяц</button>
-      </div>
-
       <div class="treasury-tabs">
-        <button class="btn" data-treasury-tab="overview">Обзор</button>
-        <button class="btn secondary" data-treasury-tab="payments">Обязательные платежи</button>
+        <button class="btn" data-treasury-tab="payments">Обязательные платежи</button>
         <button class="btn secondary" data-treasury-tab="funds">Мои копилки</button>
-        <button class="btn secondary" data-treasury-tab="transactions">Доходы / расходы</button>
       </div>
-
-      <div id="treasury-overview">
-        <div class="kpi-grid">
-          <div class="kpi">
-            <div class="label">Доходы</div>
-            <input id="manualIncome" inputmode="decimal" placeholder="0">
-            <div class="smallnote">Можно ввести вручную</div>
-          </div>
-          <div class="kpi">
-            <div class="label">Расходы</div>
-            <input id="manualExpense" inputmode="decimal" placeholder="0">
-            <div class="smallnote">Можно ввести вручную</div>
-          </div>
-          <div class="kpi">
-            <div class="label">Баланс</div>
-            <input id="manualBalance" inputmode="decimal" placeholder="0">
-            <div class="smallnote">Можно ввести вручную</div>
-          </div>
-        </div>
-        <div class="manual-save-bar">
-          <span class="small">Параметры сохраняются отдельно для каждого месяца.</span>
-          <button class="btn" id="saveTreasuryParams">Сохранить параметры</button>
-        </div>
-
-        <div class="category-grid">
-          <div class="category-card"><div class="row-between"><strong>Доходы по категориям</strong><span class="badge" id="incomeFromTx">0 ₽</span></div><div id="incomeCats"></div></div>
-          <div class="category-card"><div class="row-between"><strong>Расходы по категориям</strong><span class="badge" id="expenseFromTx">0 ₽</span></div><div id="expenseCats"></div></div>
-        </div>
-      </div>
-
-      <div id="treasury-payments" style="display:none">
+      <div id="treasury-payments">
         <div class="row-between" style="margin-bottom:10px">
           <div><h3 style="font-family:Georgia,serif;margin:0">Обязательные платежи</h3><div class="small">Галочки хранятся отдельно по годам</div></div>
-          <button class="btn secondary" id="addPayment">+ Платёж</button>
+          <div class="period-select">
+            <label for="treasuryYearSelect" class="small">Год</label>
+            <select id="treasuryYearSelect"></select>
+            <button class="btn secondary" id="addPayment">+ Платёж</button>
+          </div>
         </div>
         <div class="scrollbox">
           <table class="sticky-table">
@@ -420,25 +369,12 @@ body[data-theme="christmas"] .hero,body[data-theme="spring"] .hero,body[data-the
           </table>
         </div>
       </div>
-
       <div id="treasury-funds" style="display:none">
         <div class="row-between" style="margin-bottom:10px">
           <div><h3 style="font-family:Georgia,serif;margin:0">Мои копилки</h3><div class="small">Своя картинка, название, цель и сумма</div></div>
           <button class="btn secondary" id="addFund">+ Копилка</button>
         </div>
         <div id="fundsGrid" class="funds-grid"></div>
-      </div>
-
-      <div id="treasury-transactions" style="display:none">
-        <h3 style="font-family:Georgia,serif">Доходы и расходы</h3>
-        <div class="transaction-form">
-          <input id="txDate" type="date">
-          <select id="txType"><option value="expense">Расход</option><option value="income">Доход</option></select>
-          <input id="txAmount" type="number" placeholder="Сумма">
-          <input id="txCategory" placeholder="Категория">
-          <button class="btn wide" id="addTx">Добавить</button>
-        </div>
-        <div id="txList" class="transaction-list"></div>
       </div>
     </div>
   </section>
@@ -452,7 +388,7 @@ body[data-theme="christmas"] .hero,body[data-theme="spring"] .hero,body[data-the
       <textarea id="bodyNotes" class="notes-box" placeholder="Как себя чувствуешь, что изменилось, что хочется отметить?"></textarea>
       <div class="scrollbox" style="margin-top:12px">
         <table class="body-table">
-          <thead><tr><th>Дата</th><th>Вес, кг</th><th>Грудь, см</th><th>Талия, см</th><th>Живот, см</th><th>Бёдра, см</th></tr></thead>
+          <thead><tr><th>Дата</th><th>Вес, кг</th><th>Грудь, см</th><th>Талия, см</th><th>Бёдра, см</th></tr></thead>
           <tbody id="bodyRows"></tbody>
         </table>
       </div>
@@ -575,8 +511,6 @@ const defaults={
 };
 
 let state=loadState();
-let habitCursor={y:2026,m:8,week:0};
-let goalCursor={y:2026,m:8};
 
 function clone(x){return JSON.parse(JSON.stringify(x))}
 function deepMerge(def,saved){
@@ -650,118 +584,115 @@ function renderWeek(){
 }
 document.getElementById('clearWeekBtn').onclick=()=>{if(confirm('Очистить задачи текущей недели?')){days.forEach(d=>state.week[d]=Array.from({length:5},()=>({text:'',done:false})));save();renderWeek()}}
 
-/* HABITS - weekly paging inside month */
+/* HABITS - today, month and year progress */
 function daysInMonth(y,m){return new Date(y,m+1,0).getDate()}
 function habitKey(y,m,d){return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`}
-function weekChunks(y,m){
-  const n=daysInMonth(y,m), out=[];
-  for(let s=1;s<=n;s+=7){out.push(Array.from({length:Math.min(7,n-s+1)},(_,i)=>s+i))}
-  return out;
+function daysInYear(y){return new Date(y,1,29).getMonth()===1?366:365}
+function habitMonthCount(checks,y,m){
+  let count=0;
+  for(let d=1;d<=daysInMonth(y,m);d++)if(checks[habitKey(y,m,d)])count++;
+  return count;
 }
+function habitYearCount(checks,y){
+  let count=0;
+  for(let m=0;m<12;m++)count+=habitMonthCount(checks,y,m);
+  return count;
+}
+function habitPct(count,total){return total?100*count/total:0}
+function habitPctText(count,total){return new Intl.NumberFormat('ru-RU',{maximumFractionDigits:1}).format(habitPct(count,total))+'%'}
+let lastRenderedHabitDate='';
 function renderHabits(){
-  const chunks=weekChunks(habitCursor.y,habitCursor.m);
-  habitCursor.week=Math.max(0,Math.min(habitCursor.week,chunks.length-1));
-  const current=chunks[habitCursor.week];
-  document.getElementById('habitMonthLabel').textContent=`${monthNames[habitCursor.m]} ${habitCursor.y}`;
-  document.getElementById('habitWeekLabel').textContent=`Дни ${current[0]}–${current[current.length-1]}`;
-  const dots=document.getElementById('habitWeekDots');dots.innerHTML='';
-  chunks.forEach((_,i)=>{const d=document.createElement('span');d.className='habit-week-dot'+(i===habitCursor.week?' active':'');dots.appendChild(d)});
-  let h='<tr><th>Привычка</th>';
-  current.forEach(d=>{
-    const dow=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][new Date(habitCursor.y,habitCursor.m,d).getDay()];
-    h+=`<th>${d}<br><span class="small">${dow}</span></th>`;
-  });
-  h+='<th></th></tr>';document.getElementById('habitHead').innerHTML=h;
-
-  const tb=document.getElementById('habitsBody');tb.innerHTML='';
+  const now=new Date();
+  const y=now.getFullYear(),m=now.getMonth(),d=now.getDate();
+  const k=habitKey(y,m,d);
+  lastRenderedHabitDate=k;
+  const formatted=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(now);
+  document.getElementById('habitTodayDate').textContent='Сегодня, '+formatted;
+  const progress=document.getElementById('habitProgress');progress.innerHTML='';
+  const tbody=document.getElementById('habitsBody');tbody.innerHTML='';
+  if(!state.habits.length){
+    progress.innerHTML='<div class="empty">Добавь первую привычку — её прогресс появится здесь.</div>';
+    return;
+  }
   state.habits.forEach((habit,ri)=>{
+    if(!habit.checks || typeof habit.checks!=='object')habit.checks={};
+    const checks=habit.checks;
+    const completedMonth=habitMonthCount(checks,y,m),daysMonth=daysInMonth(y,m);
+    const completedYear=habitYearCount(checks,y),daysYear=daysInYear(y);
+    const monthWidth=habitPct(completedMonth,daysMonth).toFixed(2);
+    const yearWidth=habitPct(completedYear,daysYear).toFixed(2);
+    const card=document.createElement('div');
+    card.className='habit-summary-card';
+    card.innerHTML=`<div class="habit-summary-name">${esc(habit.name||'Без названия')}</div>
+      <div class="habit-metric">
+        <div class="habit-metric-row"><span class="habit-metric-label">${monthNames[m]}</span><span class="habit-metric-percent">${habitPctText(completedMonth,daysMonth)}</span></div>
+        <div class="habit-metric-track"><span style="width:${monthWidth}%"></span></div>
+        <div class="habit-metric-note">${completedMonth} из ${daysMonth} дней</div>
+      </div>
+      <div class="habit-metric">
+        <div class="habit-metric-row"><span class="habit-metric-label">${y} год</span><span class="habit-metric-percent">${habitPctText(completedYear,daysYear)}</span></div>
+        <div class="habit-metric-track"><span style="width:${yearWidth}%"></span></div>
+        <div class="habit-metric-note">${completedYear} из ${daysYear} дней</div>
+      </div>`;
+    progress.appendChild(card);
     const tr=document.createElement('tr');
-    let html=`<td><input class="habit-name" value="${esc(habit.name)}"></td>`;
-    current.forEach(d=>{
-      const k=habitKey(habitCursor.y,habitCursor.m,d);
-      html+=`<td><input class="check" type="checkbox" data-k="${k}" ${habit.checks[k]?'checked':''}></td>`;
-    });
-    html+='<td><button class="icon-btn del">×</button></td>';tr.innerHTML=html;
-    tr.querySelector('.habit-name').oninput=e=>{habit.name=e.target.value;save()}
-    tr.querySelectorAll('.check').forEach(c=>c.onchange=e=>{habit.checks[e.target.dataset.k]=e.target.checked;save()})
-    tr.querySelector('.del').onclick=()=>{state.habits.splice(ri,1);save();renderHabits()}
-    tb.appendChild(tr);
+    tr.innerHTML=`<td><input class="habit-name" aria-label="Название привычки" value="${esc(habit.name||'')}"></td>
+      <td><input class="check" aria-label="Выполнено сегодня: ${esc(habit.name||'Привычка')}" type="checkbox" ${checks[k]?'checked':''}></td>
+      <td><button class="icon-btn del" aria-label="Удалить привычку" title="Удалить привычку">×</button></td>`;
+    tr.querySelector('.habit-name').oninput=e=>{
+      habit.name=e.target.value;
+      card.querySelector('.habit-summary-name').textContent=habit.name||'Без названия';
+      tr.querySelector('.check').setAttribute('aria-label','Выполнено сегодня: '+(habit.name||'Привычка'));
+      save();
+    };
+    tr.querySelector('.check').onchange=e=>{checks[k]=e.target.checked;save();renderHabits()};
+    tr.querySelector('.del').onclick=()=>{state.habits.splice(ri,1);save();renderHabits()};
+    tbody.appendChild(tr);
   });
 }
-document.getElementById('habitWeekPrev').onclick=()=>{if(habitCursor.week>0){habitCursor.week--}else{habitCursor.m--;if(habitCursor.m<0){habitCursor.m=11;habitCursor.y--}habitCursor.week=weekChunks(habitCursor.y,habitCursor.m).length-1}renderHabits()}
-document.getElementById('habitWeekNext').onclick=()=>{const chunks=weekChunks(habitCursor.y,habitCursor.m);if(habitCursor.week<chunks.length-1){habitCursor.week++}else{habitCursor.m++;if(habitCursor.m>11){habitCursor.m=0;habitCursor.y++}habitCursor.week=0}renderHabits()}
-document.getElementById('habitMonthPrev').onclick=()=>{habitCursor.m--;if(habitCursor.m<0){habitCursor.m=11;habitCursor.y--}habitCursor.week=0;renderHabits()}
-document.getElementById('habitMonthNext').onclick=()=>{habitCursor.m++;if(habitCursor.m>11){habitCursor.m=0;habitCursor.y++}habitCursor.week=0;renderHabits()}
-document.getElementById('addHabitBtn').onclick=()=>{state.habits.push({name:'Новая привычка',checks:{}});save();renderHabits();toast('Привычка добавлена')}
+function refreshHabitToday(){
+  const now=new Date();
+  const k=habitKey(now.getFullYear(),now.getMonth(),now.getDate());
+  if(lastRenderedHabitDate!==k)renderHabits();
+}
+window.addEventListener('focus',refreshHabitToday);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshHabitToday()});
+setInterval(refreshHabitToday,60000);
+document.getElementById('addHabitBtn').onclick=()=>{
+  state.habits.push({name:'Новая привычка',checks:{}});
+  save();renderHabits();toast('Привычка добавлена');
+}
 
-/* GOALS - fixed */
+/* ANNUAL GOALS */
 function goalRow(obj,rm){
   const r=document.createElement('div');r.className='goal-row';
   r.innerHTML=`<input class="check" type="checkbox" ${obj.progress>=100?'checked':''}>
     <input class="text-input goaltext" placeholder="Написать цель…" value="${esc(obj.text||'')}">
-    <div class="goal-progress"><input class="slider" type="range" min="0" max="100" value="${obj.progress||0}"><output>${obj.progress||0}%</output></div>
     <button class="icon-btn del">×</button>`;
   r.querySelector('.check').onchange=e=>{obj.progress=e.target.checked?100:0;save();renderGoals()}
+  if(Number(obj.progress)>=100)r.querySelector('.goaltext').classList.add('goal-done');
   r.querySelector('.goaltext').oninput=e=>{obj.text=e.target.value;save()}
-  r.querySelector('.slider').oninput=e=>{obj.progress=+e.target.value;r.querySelector('output').value=obj.progress+'%';save()}
   r.querySelector('.del').onclick=rm;
   return r;
 }
-function goalMonthKey(){return monthKey(goalCursor.y,goalCursor.m)}
 function renderGoals(){
   const yg=document.getElementById('yearGoals');yg.innerHTML='';
   if(!state.yearGoals.length)yg.innerHTML='<div class="empty">Пока целей нет. Нажми «Добавить цель».</div>';
   state.yearGoals.forEach((g,i)=>yg.appendChild(goalRow(g,()=>{state.yearGoals.splice(i,1);save();renderGoals()})));
-
-  document.getElementById('goalMonthLabel').textContent=`${monthNames[goalCursor.m]} ${goalCursor.y}`;
-  const k=goalMonthKey();state.monthGoals[k]=state.monthGoals[k]||[];
-  const mg=document.getElementById('monthGoals');mg.innerHTML='';
-  if(!state.monthGoals[k].length)mg.innerHTML='<div class="empty">Пока целей на этот месяц нет.</div>';
-  state.monthGoals[k].forEach((g,i)=>mg.appendChild(goalRow(g,()=>{state.monthGoals[k].splice(i,1);save();renderGoals()})));
+  const done=state.yearGoals.filter(g=>Number(g.progress)>=100).length;
+  document.getElementById('yearGoalCount').textContent='Выполнено '+done+' из '+state.yearGoals.length;
 }
-document.querySelectorAll('[data-goal-tab]').forEach(b=>b.onclick=()=>{
-  const x=b.dataset.goalTab;
-  document.getElementById('yearGoalsPanel').style.display=x==='year'?'block':'none';
-  document.getElementById('monthGoalsPanel').style.display=x==='month'?'block':'none';
-  document.querySelectorAll('[data-goal-tab]').forEach(z=>z.className='btn '+(z===b?'':'secondary'));
-});
 document.getElementById('addYearGoal').onclick=()=>{state.yearGoals.push({text:'',progress:0});save();renderGoals();toast('Цель добавлена')}
-document.getElementById('addMonthGoal').onclick=()=>{const k=goalMonthKey();state.monthGoals[k]=state.monthGoals[k]||[];state.monthGoals[k].push({text:'',progress:0});save();renderGoals();toast('Цель добавлена')}
-document.getElementById('goalPrev').onclick=()=>{goalCursor.m--;if(goalCursor.m<0){goalCursor.m=11;goalCursor.y--}renderGoals()}
-document.getElementById('goalNext').onclick=()=>{goalCursor.m++;if(goalCursor.m>11){goalCursor.m=0;goalCursor.y++}renderGoals()}
 
-/* TREASURY PERIOD */
-const tMonth=document.getElementById('treasuryMonthSelect'),tYear=document.getElementById('treasuryYearSelect');
-monthNames.forEach((m,i)=>{const o=document.createElement('option');o.value=i;o.textContent=m;tMonth.appendChild(o)});
-for(let y=2024;y<=2035;y++){const o=document.createElement('option');o.value=y;o.textContent=y;tYear.appendChild(o)}
-function syncTreasuryPeriod(){
-  tMonth.value=state.treasury.selectedMonth;
-  tYear.value=state.treasury.selectedYear;
-  renderTreasury();
+/* TREASURY: обязательные платежи по годам */
+const tYear=document.getElementById('treasuryYearSelect');
+const initialTreasuryYear=Number(state.treasury.selectedYear)||new Date().getFullYear();
+for(let y=Math.min(2024,initialTreasuryYear);y<=Math.max(2035,initialTreasuryYear);y++){
+  const o=document.createElement('option');o.value=y;o.textContent=y;tYear.appendChild(o);
 }
-tMonth.onchange=()=>{state.treasury.selectedMonth=+tMonth.value;save();renderTreasury()}
-tYear.onchange=()=>{state.treasury.selectedYear=+tYear.value;save();renderTreasury()}
-document.getElementById('treasuryPrev').onclick=()=>{state.treasury.selectedMonth--;if(state.treasury.selectedMonth<0){state.treasury.selectedMonth=11;state.treasury.selectedYear--}save();syncTreasuryPeriod()}
-document.getElementById('treasuryNext').onclick=()=>{state.treasury.selectedMonth++;if(state.treasury.selectedMonth>11){state.treasury.selectedMonth=0;state.treasury.selectedYear++}save();syncTreasuryPeriod()}
-document.getElementById('treasuryToday').onclick=()=>{const d=new Date();state.treasury.selectedYear=d.getFullYear();state.treasury.selectedMonth=d.getMonth();save();syncTreasuryPeriod()}
-
-/* TREASURY OVERVIEW */
+tYear.onchange=()=>{state.treasury.selectedYear=+tYear.value;save();renderPayments()};
 function parseNum(v){return Number(String(v).replace(/\s/g,'').replace(',','.'))||0}
-function renderCategorySummary(type){
-  const y=state.treasury.selectedYear,m=state.treasury.selectedMonth;
-  const sums={};
-  state.treasury.transactions.forEach(t=>{
-    const d=new Date(t.date+'T00:00:00');
-    if(t.type===type&&d.getFullYear()===y&&d.getMonth()===m)sums[t.category]=(sums[t.category]||0)+parseNum(t.amount);
-  });
-  const box=document.getElementById(type==='income'?'incomeCats':'expenseCats');
-  box.innerHTML='';
-  const entries=Object.entries(sums).sort((a,b)=>b[1]-a[1]);
-  if(!entries.length){box.innerHTML='<div class="empty">Пока нет операций.</div>';return 0}
-  let total=0;
-  entries.forEach(([cat,val])=>{total+=val;const r=document.createElement('div');r.className='cat-row';r.innerHTML=`<span>${esc(cat)}</span><span class="amount">${money(val)}</span>`;box.appendChild(r)});
-  return total;
-}
+
 function renderPayments(){
   const y=state.treasury.selectedYear;
   const tb=document.getElementById('paymentsBody');tb.innerHTML='';
@@ -821,47 +752,14 @@ function renderFunds(){
 }
 document.getElementById('addFund').onclick=()=>{state.treasury.funds.push({name:'Новая копилка',goal:'',current:0,target:0,image:''});save();renderFunds();toast('Копилка добавлена')}
 
-function renderTx(){
-  const box=document.getElementById('txList');box.innerHTML='';
-  const y=state.treasury.selectedYear,m=state.treasury.selectedMonth;
-  const filtered=state.treasury.transactions.map((t,i)=>({t,i})).filter(({t})=>{const d=new Date(t.date+'T00:00:00');return d.getFullYear()===y&&d.getMonth()===m});
-  filtered.forEach(({t,i})=>{
-    const r=document.createElement('div');r.className='transaction-row';
-    r.innerHTML=`<span>${esc(t.date)}</span><span>${esc(t.category)}</span><span class="amount ${t.type}">${t.type==='income'?'+':'−'} ${money(t.amount)}</span><button class="icon-btn del">×</button>`;
-    r.querySelector('.del').onclick=()=>{state.treasury.transactions.splice(i,1);save();renderTreasury()}
-    box.appendChild(r);
-  });
-  if(!filtered.length)box.innerHTML='<div class="empty">Операций за выбранный месяц пока нет.</div>';
-}
-document.getElementById('addTx').onclick=()=>{
-  const date=document.getElementById('txDate').value,amount=parseNum(document.getElementById('txAmount').value),category=document.getElementById('txCategory').value.trim(),type=document.getElementById('txType').value;
-  if(!date||!amount||!category){alert('Заполни дату, сумму и категорию');return}
-  state.treasury.transactions.unshift({date,amount,category,type});save();
-  document.getElementById('txAmount').value='';document.getElementById('txCategory').value='';
-  renderTreasury();toast('Операция добавлена');
-}
-document.getElementById('saveTreasuryParams').onclick=()=>{
-  const d=ensureTreasuryMonth(state.treasury.selectedYear,state.treasury.selectedMonth);
-  d.income=document.getElementById('manualIncome').value;
-  d.expense=document.getElementById('manualExpense').value;
-  d.balance=document.getElementById('manualBalance').value;
-  save();toast('Параметры Казны сохранены');
-}
-
 function renderTreasury(){
-  tMonth.value=state.treasury.selectedMonth;tYear.value=state.treasury.selectedYear;
-  const d=ensureTreasuryMonth(state.treasury.selectedYear,state.treasury.selectedMonth);
-  document.getElementById('manualIncome').value=d.income||'';
-  document.getElementById('manualExpense').value=d.expense||'';
-  document.getElementById('manualBalance').value=d.balance||'';
-  const inc=renderCategorySummary('income'),exp=renderCategorySummary('expense');
-  document.getElementById('incomeFromTx').textContent=money(inc);
-  document.getElementById('expenseFromTx').textContent=money(exp);
-  renderPayments();renderFunds();renderTx();
+  tYear.value=state.treasury.selectedYear;
+  renderPayments();
+  renderFunds();
 }
 document.querySelectorAll('[data-treasury-tab]').forEach(b=>b.onclick=()=>{
   const t=b.dataset.treasuryTab;
-  ['overview','payments','funds','transactions'].forEach(x=>document.getElementById('treasury-'+x).style.display=x===t?'block':'none');
+  ['payments','funds'].forEach(x=>document.getElementById('treasury-'+x).style.display=x===t?'block':'none');
   document.querySelectorAll('[data-treasury-tab]').forEach(z=>z.className='btn '+(z===b?'':'secondary'));
 });
 
@@ -877,7 +775,6 @@ function renderBody(){
       <td><input data-k="weight" inputmode="decimal" value="${esc(v.weight||'')}"></td>
       <td><input data-k="chest" inputmode="decimal" value="${esc(v.chest||'')}"></td>
       <td><input data-k="waist" inputmode="decimal" value="${esc(v.waist||'')}"></td>
-      <td><input data-k="belly" inputmode="decimal" value="${esc(v.belly||'')}"></td>
       <td><input data-k="hips" inputmode="decimal" value="${esc(v.hips||'')}"></td>`;
     tr.querySelectorAll('input').forEach(inp=>inp.oninput=e=>{v[e.target.dataset.k]=e.target.value;save()});
     tb.appendChild(tr);
@@ -918,7 +815,6 @@ document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{
   window.scrollTo({top:0,behavior:'smooth'});
 });
 
-document.getElementById('txDate').value=new Date().toISOString().slice(0,10);
 
 
 window.MagicPlannerBridge = {
