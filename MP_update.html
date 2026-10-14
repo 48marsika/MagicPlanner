@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MagicPlanner — текущий месяц в обязательных платежах</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:#332a42;background:#f8f4fc}
+*{box-sizing:border-box}body{margin:0;padding:28px 15px;background:radial-gradient(circle at 90% 0%,#e8dcfb,transparent 35%),radial-gradient(circle at 4% 60%,#fff3d9,transparent 45%),#f8f4fc;min-height:100vh}
+main{max-width:760px;margin:auto}h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(28px,5vw,40px);font-weight:500;margin:9px 0 12px;color:#4b3a67}
+h2{font-size:19px;margin:0 0 12px;color:#4c3b65}p{line-height:1.56}.tag{font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:#82669d}
+.card{background:#fffdfef0;border:1px solid #e4dceb;border-radius:19px;margin:13px 0;padding:19px;box-shadow:0 12px 30px #3a2b4811}
+button{font:inherit;cursor:pointer}.btn{padding:12px 16px;background:#7059a7;color:#fff;border:0;border-radius:12px;font-weight:700}.btn.secondary{background:#eee8f8;color:#513a77;border:1px solid #d6c7ed}
+.btn:disabled{opacity:.5;cursor:wait}.line{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin:12px 0}.small{font-size:13px;color:#70657d}input[type=file]{display:block;width:100%;margin:10px 0 14px;padding:12px;border:1px solid #dcd2e7;border-radius:12px;background:#fff;color:#382d4a}
+#status{padding:13px;margin-top:10px;border-radius:12px;border:1px solid #ddd4eb;background:#f5f0fb;font-size:14px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+#status[data-kind="success"]{background:#edf7ef;border-color:#bcd9bf;color:#1d6734}#status[data-kind="error"]{background:#fff0f0;border-color:#e8bcbf;color:#842b30}
+code{padding:2px 6px;background:#f1edf7;border-radius:5px}a{color:#5b418d}ul{padding-left:19px;line-height:1.72}#downloads{border:1px solid #c4d9c7;background:#f5fbf6}
+</style></head><body><main>
+<div class="tag">MagicPlanner · обновление платежей</div>
+<h1>Текущий месяц — без прокрутки</h1>
+<p>В «Обязательных платежах» теперь по умолчанию открывается текущий месяц. Видны только его галочки, а другие месяцы доступны стрелками ‹ и ›. Кнопка «Сегодня» возвращает к текущему месяцу. Все прежние данные сохраняются.</p>
+<section class="card"><h2>1. Сохрани резервную копию</h2><p>Открой свой MagicPlanner → «Настройки» → «Создать резервную копию». Сохрани файл <code>.json</code> перед обновлением.</p></section>
+<section class="card"><h2>2. Подготовь файлы автоматически</h2>
+<p class="small">Помощник получает актуальную версию из публичного репозитория и вносит только изменения раздела платежей. Другие вкладки не меняются.</p>
+<button class="btn" id="buildGithub">Получить код и подготовить обновление</button>
+<div id="status" role="status">Нажми кнопку выше.</div>
+</section>
+<section class="card"><h2>Если GitHub не загрузился</h2>
+<p class="small">Открой <a href="https://github.com/48marsika/MagicPlanner/blob/main/index.html" target="_blank" rel="noopener">GitHub → index.html</a>, нажми <b>Raw</b>, затем Ctrl+S и выбери сохранённый исходный файл ниже. Можно также выбрать существующий service-worker.js (необязательно).</p>
+<label for="sourceFile">Исходный index.html</label><input type="file" id="sourceFile" accept=".html,text/html">
+<label for="workerFile">Исходный service-worker.js (необязательно)</label><input type="file" id="workerFile" accept=".js,text/javascript">
+<button class="btn secondary" id="buildFile">Подготовить из выбранного файла</button></section>
+<section class="card" id="downloads" hidden><h2>3. Скачай оба файла</h2>
+<div class="line"><button class="btn" id="downloadIndex">Скачать index.html</button><button class="btn secondary" id="downloadWorker">Скачать service-worker.js</button></div>
+<p class="small">Проверь названия перед загрузкой на GitHub: строго <code>index.html</code> и <code>service-worker.js</code>, без (1) или (2).</p></section>
+<section class="card"><h2>4. Обнови сайт</h2>
+<ul><li>Открой <a href="https://github.com/48marsika/MagicPlanner" target="_blank" rel="noopener">GitHub → MagicPlanner</a>, выбери ветку <b>main</b>.</li>
+<li>Нажми <b>Add file → Upload files</b> и выбери два скачанных файла. Подтверди их замену и нажми <b>Commit changes</b>.</li>
+<li>Открой <a href="https://48marsika.github.io/MagicPlanner/" target="_blank" rel="noopener">опубликованный MagicPlanner</a>, обнови <b>Ctrl+F5</b> и проверь «Казна → Обязательные платежи».</li></ul>
+<p class="small">Сам помощник GitHub не изменяет; он создаёт готовые файлы у тебя на компьютере. Доступ к аккаунту не требуется.</p></section>
+</main><script>
+"use strict";
+const SOURCE_BASE='https://raw.githubusercontent.com/48marsika/MagicPlanner/main/';
+const status=document.getElementById('status');
+const downloads=document.getElementById('downloads');
+const PAYMENT_MARKUP="      <div id=\"treasury-payments\">\n        <div class=\"row-between payments-section-heading\">\n          <div>\n            <h3 style=\"font-family:Georgia,serif;margin:0\">Обязательные платежи</h3>\n            <div class=\"small\">Открывается текущий месяц. Для других месяцев используй стрелки.</div>\n          </div>\n          <button class=\"btn secondary\" id=\"addPayment\">+ Платёж</button>\n        </div>\n        <div class=\"payments-month-nav\" aria-label=\"Переключение месяца платежей\">\n          <button class=\"btn ghost\" type=\"button\" id=\"paymentMonthPrev\" aria-label=\"Предыдущий месяц\">‹</button>\n          <strong id=\"paymentMonthTitle\" aria-live=\"polite\">Текущий месяц</strong>\n          <button class=\"btn ghost\" type=\"button\" id=\"paymentMonthNext\" aria-label=\"Следующий месяц\">›</button>\n          <button class=\"btn secondary\" type=\"button\" id=\"paymentMonthToday\">Сегодня</button>\n        </div>\n        <div class=\"payments-month-wrap\">\n          <table class=\"payments-month-table\">\n            <thead><tr><th>Наименование</th><th id=\"paymentMonthColumn\">Месяц</th><th aria-label=\"Удалить\"></th></tr></thead>\n            <tbody id=\"paymentsBody\"></tbody>\n          </table>\n        </div>\n        <div class=\"small payments-month-summary\" id=\"paymentMonthSummary\" aria-live=\"polite\"></div>\n      </div>\n      ";
+const PAYMENT_STYLE="/* PAYMENT-MONTH-V3: в Казне виден один выбранный месяц, по умолчанию сегодняшний. */\n.payments-section-heading{margin-bottom:14px;flex-wrap:wrap}\n.payments-section-heading h3{font-size:22px}\n.payments-month-nav{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px;margin-bottom:12px;border:1px solid var(--line);border-radius:16px;background:rgba(255,249,243,.82)}\n.payments-month-nav strong{font-family:Georgia,serif;font-size:19px;font-weight:700;color:var(--text);text-align:center;min-width:165px}\n.payments-month-nav button{min-height:40px}\n.payments-month-nav #paymentMonthToday{margin-left:auto}\n.payments-month-nav button:disabled{opacity:.55;cursor:default}\n.payments-month-wrap{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:rgba(255,255,255,.36)}\n.payments-month-table{border-collapse:collapse;width:100%;table-layout:fixed}\n.payments-month-table th,.payments-month-table td{border-bottom:1px solid var(--line);padding:11px 10px;text-align:center;background:rgba(255,250,244,.72)}\n.payments-month-table th{background:rgba(235,219,201,.90);font-size:13px;color:var(--text)}\n.payments-month-table tr:last-child td{border-bottom:0}\n.payments-month-table th:first-child,.payments-month-table td:first-child{text-align:left;width:auto}\n.payments-month-table th:nth-child(2),.payments-month-table td:nth-child(2){width:115px}\n.payments-month-table th:last-child,.payments-month-table td:last-child{width:48px}\n.payments-month-table .pay-name{width:100%;min-width:0}\n.payments-month-table .check{width:28px;height:28px;vertical-align:middle;cursor:pointer}\n.payments-month-summary{padding:9px 4px 0;line-height:1.45}\n@media(max-width:430px){\n  .payments-month-nav{gap:5px;padding:9px 7px}\n  .payments-month-nav strong{min-width:105px;font-size:16px;flex:1}\n  .payments-month-nav button{padding:9px 10px}\n  .payments-month-nav #paymentMonthToday{margin-left:0}\n  .payments-month-table th,.payments-month-table td{padding:10px 6px}\n  .payments-month-table th:nth-child(2),.payments-month-table td:nth-child(2){width:82px}\n  .payments-month-table th:last-child,.payments-month-table td:last-child{width:42px}\n}\n\n";
+const PAYMENT_LOGIC="/* PAYMENT-MONTH-V3: текущий месяц сразу при входе, история не удаляется. */\nconst paymentToday=new Date();\nlet paymentPeriod={y:paymentToday.getFullYear(),m:paymentToday.getMonth()};\nlet lastPaymentCalendarMonth=paymentPeriod.y+'-'+paymentPeriod.m;\nfunction paymentMonthKey(y,m){return `${y}-${m}`} /* формат совпадает со старыми ключами */\nfunction parseNum(v){return Number(String(v).replace(/\\s/g,'').replace(',','.'))||0}\nfunction updatePaymentSummary(){\n  const k=paymentMonthKey(paymentPeriod.y,paymentPeriod.m);\n  const ps=state.treasury.payments||[];\n  const paid=ps.filter(p=>p.checks&&p.checks[k]).length;\n  document.getElementById('paymentMonthSummary').textContent=`Отмечено: ${paid} из ${ps.length} платежей за ${monthNames[paymentPeriod.m].toLowerCase()} ${paymentPeriod.y} года.`;\n}\nfunction renderPayments(){\n  const y=paymentPeriod.y,m=paymentPeriod.m,k=paymentMonthKey(y,m);\n  document.getElementById('paymentMonthTitle').textContent=monthNames[m]+' '+y;\n  document.getElementById('paymentMonthColumn').textContent=monthNames[m];\n  const now=new Date();\n  document.getElementById('paymentMonthToday').disabled=(y===now.getFullYear()&&m===now.getMonth());\n  const tb=document.getElementById('paymentsBody');tb.innerHTML='';\n  state.treasury.payments.forEach((p,ri)=>{\n    if(!p.checks||typeof p.checks!=='object')p.checks={};\n    const tr=document.createElement('tr');\n    tr.innerHTML=`<td><input class=\"pay-name\" aria-label=\"Название платежа\" value=\"${esc(p.name)}\"></td>\n      <td><input class=\"check\" type=\"checkbox\" aria-label=\"Оплачено за ${monthNames[m]} ${y}: ${esc(p.name)}\" ${p.checks[k]?'checked':''}></td>\n      <td><button class=\"icon-btn del\" aria-label=\"Удалить платёж\" title=\"Удалить платёж\">×</button></td>`;\n    tr.querySelector('.pay-name').oninput=e=>{\n      p.name=e.target.value;\n      tr.querySelector('.check').setAttribute('aria-label',`Оплачено за ${monthNames[m]} ${y}: ${p.name}`);\n      save();\n    };\n    tr.querySelector('.check').onchange=e=>{p.checks[k]=e.target.checked;save();updatePaymentSummary()};\n    tr.querySelector('.del').onclick=()=>{state.treasury.payments.splice(ri,1);save();renderPayments()};\n    tb.appendChild(tr);\n  });\n  updatePaymentSummary();\n}\nfunction shiftPaymentMonth(delta){\n  const d=new Date(paymentPeriod.y,paymentPeriod.m+delta,1);\n  paymentPeriod={y:d.getFullYear(),m:d.getMonth()};\n  renderPayments();\n}\nfunction resetPaymentToToday(){\n  const now=new Date();\n  paymentPeriod={y:now.getFullYear(),m:now.getMonth()};\n  lastPaymentCalendarMonth=paymentPeriod.y+'-'+paymentPeriod.m;\n  renderPayments();\n}\nfunction checkPaymentMonthRollover(){\n  const now=new Date(),key=now.getFullYear()+'-'+now.getMonth();\n  if(key===lastPaymentCalendarMonth)return;\n  const [py,pm]=lastPaymentCalendarMonth.split('-').map(Number);\n  const showingOldCurrent=(paymentPeriod.y===py&&paymentPeriod.m===pm);\n  lastPaymentCalendarMonth=key;\n  if(showingOldCurrent)resetPaymentToToday();\n}\nsetInterval(checkPaymentMonthRollover,60000);\nwindow.addEventListener('focus',checkPaymentMonthRollover);\ndocument.addEventListener('visibilitychange',()=>{if(!document.hidden)checkPaymentMonthRollover()});\ndocument.getElementById('paymentMonthPrev').onclick=()=>shiftPaymentMonth(-1);\ndocument.getElementById('paymentMonthNext').onclick=()=>shiftPaymentMonth(1);\ndocument.getElementById('paymentMonthToday').onclick=resetPaymentToToday;\ndocument.getElementById('addPayment').onclick=()=>{\n  state.treasury.payments.push({name:'Новый платёж',checks:{}});\n  save();renderPayments();toast('Платёж добавлен');\n}\n\n";
+let indexOutput='',swOutput='';
+function assert(ok,msg){if(!ok)throw Error(msg)}
+function sliceBetween(s,left,right){let a=s.indexOf(left),b=s.indexOf(right,a+left.length);assert(a>=0&&b>a,'Не найдена нужная часть исходного планера: '+left);return s.slice(a,b)}
+function replaceBetween(s,left,right,newValue){return s.replace(sliceBetween(s,left,right),newValue)}
+function replaceOne(s,find,newValue){let i=s.indexOf(find);assert(i>=0&&s.indexOf(find,i+1)<0,'В исходном файле не найден нужный участок: '+find);return s.slice(0,i)+newValue+s.slice(i+find.length)}
+function secureArea(s,a,b){return sliceBetween(s,a,b).trim()}
+function updatePlanner(source){
+  assert(source.includes("const KEY='yuliaPlannerV3'"),'Исходный index.html не соответствует MagicPlanner.');
+  assert(source.includes('/* HABITS - today, month and year progress */'),'Сначала нужно установить предыдущую версию с сегодняшними привычками.');
+  if(source.includes('/* PAYMENT-MONTH-V3: текущий месяц')){
+    assert(source.includes('id="paymentMonthToday"'),'Обнаружено неполное предыдущее обновление.');
+    return source;
+  }
+  assert(source.includes('/* TREASURY: обязательные платежи по годам */'),'Изменилась структура платежей, безопасное обновление остановлено.');
+  let out=source;
+  out=replaceBetween(out,'      <div id="treasury-payments">','      <div id="treasury-funds"',PAYMENT_MARKUP);
+  out=replaceBetween(out,'/* TREASURY: обязательные платежи по годам */','function resizeImage(',PAYMENT_LOGIC);
+  out=replaceOne(out,'  tYear.value=state.treasury.selectedYear;\n','');
+  out=replaceOne(out,"  const t=b.dataset.treasuryTab;\n", "  const t=b.dataset.treasuryTab;\n  if(t==='payments')resetPaymentToToday();\n");
+  out=replaceOne(out,"document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{\n", "document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{\n  if(b.dataset.view==='treasury')resetPaymentToToday();\n");
+  out=replaceOne(out,'.tabbar{',PAYMENT_STYLE+'.tabbar{');
+  const ids=new Set([...out.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]));
+  const refs=[...out.matchAll(/document\.getElementById\(['"]([^'"]+)['"]\)/g)].map(m=>m[1]);
+  assert(refs.every(id=>ids.has(id)),'Ошибка проверки ссылок на элементы: '+refs.filter(id=>!ids.has(id)).join(', '));
+  const scripts=[...out.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)];
+  assert(scripts.length===3,'Структура скриптов планера была изменена.');
+  scripts.forEach(([,attrs,code])=>{if(!attrs.includes('type="module"'))new Function(code)});
+  for(const [a,b] of [
+    ['  <section id="week" class="view active">','  <section id="habits" class="view">'],
+    ['  <section id="habits" class="view">','  <section id="goals" class="view">'],
+    ['  <section id="goals" class="view">','  <section id="treasury" class="view">'],
+    ['  <section id="body" class="view">','  <section id="settings" class="view">'],
+    ['  <section id="settings" class="view">','<nav class="tabbar">'],
+    ['/* HABITS - today, month and year progress */','/* ANNUAL GOALS */'],
+    ['function fundCard(','function renderTreasury(){'],
+    ['/* BODY */','/* SETTINGS */'],
+    ['/* SETTINGS */','/* NAV */']
+  ]) assert(secureArea(source,a,b)===secureArea(out,a,b),'Обнаружено изменение в защищённом разделе: '+a);
+  assert(secureArea(source,'/* ANNUAL GOALS */','/* TREASURY: обязательные платежи по годам */')===secureArea(out,'/* ANNUAL GOALS */','/* PAYMENT-MONTH-V3: текущий месяц'),'Годовые цели затронуты неожиданным образом.');
+  assert(out.includes("monthGoals:{}")&&out.includes('transactions:[]'),'Выполнено неожиданное изменение старой модели данных.');
+  assert(!out.includes('id="treasuryYearSelect"')&&!out.includes('const tYear='),'Старая форма года не удалена.');
+  assert((out.match(/id="paymentsBody"/g)||[]).length===1,'Таблица платежей создана неправильно.');
+  assert(out.includes('function habitYearCount(')&&out.includes('const KEY='),'Защита привычек или синхронизации нарушена.');
+  return out;
+}
+function updateServiceWorker(source){
+  const pattern=/magic-planner-v(\d+)/;
+  const m=source.match(pattern);
+  assert(m,'Не обнаружена версия PWA-кэша.');
+  return replaceOne(source,m[0],'magic-planner-v'+(Number(m[1])+1));
+}
+const SERVICE_WORKER_BACKUP="const CACHE='magic-planner-v2';\nconst ASSETS=['./','./index.html','./manifest.webmanifest','./icon-192.svg','./icon-512.svg'];\nself.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));\nself.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));\nself.addEventListener('fetch',e=>{\n  if(e.request.method!=='GET') return;\n  e.respondWith(fetch(e.request).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return r;}).catch(()=>caches.match(e.request).then(r=>r||caches.match('./index.html'))));\n});\n";
+function message(str,kind=''){status.textContent=str;status.dataset.kind=kind}
+function enableDownloads(index,sw){indexOutput=index;swOutput=sw;downloads.hidden=false;message('Файлы проверены и готовы к скачиванию. Данные, привычки и копилки не меняются.','success')}
+async function fetchSource(url){const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);return r.text()}
+async function prepare(index,sw){
+  try{
+    const patched=updatePlanner(index);
+    const swPatched=updateServiceWorker(sw||SERVICE_WORKER_BACKUP);
+    enableDownloads(patched,swPatched);
+  }catch(err){downloads.hidden=true;message('Обновление не выполнено: '+err.message+'\nНичего в исходных файлах не менялось.','error')}
+}
+document.getElementById('buildGithub').onclick=async()=>{
+  const b=document.getElementById('buildGithub');b.disabled=true;message('Получаю файлы GitHub и проверяю код…');
+  try{
+    const index=await fetchSource(SOURCE_BASE+'index.html');
+    const worker=await fetchSource(SOURCE_BASE+'service-worker.js').catch(()=>SERVICE_WORKER_BACKUP);
+    await prepare(index,worker);
+  }catch(err){message('GitHub не ответил: '+err.message+'\nИспользуй запасной вариант ниже, выбрав текущий index.html.','error')}
+  finally{b.disabled=false}
+};
+document.getElementById('buildFile').onclick=async()=>{
+  const indexFile=document.getElementById('sourceFile').files[0];
+  if(!indexFile){message('Сначала выбери файл index.html.','error');return}
+  const workerFile=document.getElementById('workerFile').files[0];
+  await prepare(await indexFile.text(),workerFile?await workerFile.text():SERVICE_WORKER_BACKUP);
+};
+function downloadFile(contents,name,type){
+  const url=URL.createObjectURL(new Blob([contents],{type}));
+  const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+document.getElementById('downloadIndex').onclick=()=>indexOutput&&downloadFile(indexOutput,'index.html','text/html;charset=utf-8');
+document.getElementById('downloadWorker').onclick=()=>swOutput&&downloadFile(swOutput,'service-worker.js','text/javascript;charset=utf-8');
+</script></body></html>
