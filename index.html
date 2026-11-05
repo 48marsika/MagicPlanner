@@ -395,6 +395,26 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 #recurringDays input{accent-color:var(--accent)}
 .recurring-row{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding:12px 0;gap:12px;overflow-wrap:anywhere}
 #recurringList{margin-top:14px}
+
+.tabbar{grid-template-columns:repeat(7,minmax(0,1fr))}
+.mandatory-add{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:16px 0}
+.mandatory-add>.text-input{flex:1;min-width:170px}
+.mandatory-add label{display:flex;align-items:center;gap:8px;font-size:13px}
+.mandatory-add input[type=number],.mandatory-quota input{width:65px;padding:8px;border:1px solid var(--line);border-radius:9px;background:var(--panel-strong);color:var(--text)}
+.mandatory-scroll{max-height:65vh;isolation:isolate}
+.mandatory-table{border-collapse:separate;border-spacing:0;width:100%;color:var(--text)}
+.mandatory-table th,.mandatory-table td{min-width:45px;text-align:center;padding:10px 7px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--panel-strong)}
+.mandatory-table th{position:sticky;top:0;z-index:2;background:var(--month-soft,var(--panel-strong));font-size:13px}
+.mandatory-table th:first-child,.mandatory-table td:first-child{position:sticky;left:0;z-index:3;min-width:190px;width:230px;text-align:left}
+.mandatory-table th:first-child{z-index:4}
+.mandatory-table td:first-child>.text-input{width:100%}
+.mandatory-quota{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-top:5px}
+.mandatory-table input[type=checkbox]{width:26px;height:26px;accent-color:var(--accent);cursor:pointer}
+.mandatory-table .mandatory-inactive{color:var(--muted);opacity:.65}
+.mandatory-table .mandatory-complete td{background:#e0f0df;color:#204b2c}
+.mandatory-table .mandatory-complete .text-input{color:#204b2c}
+.mandatory-table .mandatory-total{font-weight:700;white-space:nowrap}
+@media(max-width:520px){.navbtn{font-size:9px;padding:8px 1px}.mandatory-table th:first-child,.mandatory-table td:first-child{min-width:150px;width:150px}.mandatory-table th,.mandatory-table td{padding:9px 5px}.mandatory-add>.text-input{flex-basis:100%}}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -471,7 +491,17 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
     </div>
   </section>
 
-  <section id="goals" class="view">
+  <section id="mandatory" class="view">
+<div class="card">
+  <div class="section-title"><div><h2>✅ Обязательное на месяц</h2><div class="sub">Одна галочка — одно выполнение, без привязки к дню.</div></div></div>
+  <div class="month-nav"><button id="mandatoryPrev" class="btn ghost" aria-label="Предыдущий месяц">←</button><strong id="mandatoryMonthTitle"></strong><button id="mandatoryNext" class="btn ghost" aria-label="Следующий месяц">→</button><button id="mandatoryToday" class="btn secondary">Текущий месяц</button></div>
+  <form id="mandatoryAddForm" class="mandatory-add"><input id="mandatoryName" class="text-input" aria-label="Название активности" placeholder="Добавить активность…" required maxlength="300"><label>Раз в месяц <input id="mandatoryCount" type="number" min="1" max="100" step="1" value="4" required></label><button class="btn" type="submit">Добавить</button></form>
+  <p class="small" id="mandatoryMonthHint"></p>
+  <div class="scrollbox mandatory-scroll" tabindex="0" aria-label="Таблица обязательных дел на месяц"><table class="mandatory-table"><thead id="mandatoryHead"></thead><tbody id="mandatoryBody"></tbody></table></div>
+  <p class="small" id="mandatorySummary"></p>
+</div>
+</section>
+<section id="goals" class="view">
     <div class="card">
       <div class="section-title">
         <div><h2>🎯 Цели</h2><div class="sub">Мои цели на год</div></div>
@@ -611,6 +641,7 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 
 <nav class="tabbar">
   <button class="navbtn active" data-view="week"><span>📅</span><span>Неделя</span></button>
+  <button class="navbtn" data-view="mandatory"><span>✅</span><span>Месяц</span></button>
   <button class="navbtn" data-view="habits"><span>🌱</span><span>Привычки</span></button>
   <button class="navbtn" data-view="goals"><span>🎯</span><span>Цели</span></button>
   <button class="navbtn" data-view="treasury"><span>💰</span><span>Казна</span></button>
@@ -646,6 +677,7 @@ const defaults={
   weekHistory:[],
   inbox:[],
   recurringTasks:[],
+  mandatoryMonths:{},
   treasury:{
     selectedYear:2026,selectedMonth:8,
     months:{},
@@ -1316,6 +1348,7 @@ document.getElementById('resetBtn').onclick=()=>{if(confirm('Удалить вс
 /* NAV */
 document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{
   if(b.dataset.view==='treasury')resetPaymentToToday();
+  if(b.dataset.view==='mandatory')openCurrentMandatoryMonth();
   document.querySelectorAll('.navbtn').forEach(x=>x.classList.remove('active'));b.classList.add('active');
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(b.dataset.view).classList.add('active');
   window.scrollTo({top:0,behavior:'smooth'});
@@ -1336,7 +1369,98 @@ window.MagicPlannerBridge = {
   }
 };
 
+
+/* Each month owns its rows and marks. New months inherit only names and quotas. */
+let mandatoryPeriod=monthlyFocusPeriod().key;
+let mandatoryCalendarMonth=mandatoryPeriod;
+function shiftMandatoryMonth(key,delta){
+  const [year,month]=key.split('-').map(Number),date=new Date(Date.UTC(year,month-1+delta,1));
+  return date.getUTCFullYear()+'-'+String(date.getUTCMonth()+1).padStart(2,'0');
+}
+function mandatoryQuota(value){
+  return Math.max(1,Math.min(100,Math.floor(Number(value)||1)));
+}
+function ensureMandatoryMonth(key){
+  if(!state.mandatoryMonths||typeof state.mandatoryMonths!=='object')state.mandatoryMonths={};
+  if(state.mandatoryMonths[key])return false;
+  const previous=Object.keys(state.mandatoryMonths).filter(k=>k<key).sort().at(-1);
+  const source=previous?state.mandatoryMonths[previous].rows||[]:[];
+  state.mandatoryMonths[key]={rows:source.map(row=>({id:row.id,name:row.name,target:mandatoryQuota(row.target),marks:[]}))};
+  return true;
+}
+function mandatoryMonthTitle(key){
+  const [year,month]=key.split('-').map(Number);return monthNames[month-1]+' '+year;
+}
+function updateMandatoryTotals(){
+  const rows=state.mandatoryMonths[mandatoryPeriod].rows;
+  let checked=0,total=0;
+  rows.forEach((row,index)=>{
+    const target=mandatoryQuota(row.target),done=(row.marks||[]).slice(0,target).filter(Boolean).length;
+    checked+=done;total+=target;
+    const tr=document.getElementById('mandatory-row-'+index);
+    if(tr){tr.classList.toggle('mandatory-complete',done===target);tr.querySelector('.mandatory-total').textContent=done+'/'+target}
+  });
+  document.getElementById('mandatorySummary').textContent=rows.length?'Всего выполнений: '+checked+' из '+total+'. Полностью выполненные строки выделены зелёным.':'Добавь первую активность и укажи, сколько раз выполнить её за месяц.';
+}
+function renderMandatoryMonth(){
+  const created=ensureMandatoryMonth(mandatoryPeriod);
+  const rows=state.mandatoryMonths[mandatoryPeriod].rows;
+  document.getElementById('mandatoryMonthTitle').textContent=mandatoryMonthTitle(mandatoryPeriod);
+  const current=monthlyFocusPeriod().key;
+  document.getElementById('mandatoryNext').disabled=mandatoryPeriod>=current;
+  document.getElementById('mandatoryToday').disabled=mandatoryPeriod===current;
+  document.getElementById('mandatoryMonthHint').textContent=mandatoryPeriod===current?'Активности и нормы перейдут в новый месяц автоматически; отметки останутся в этом месяце.':'История месяца. Изменения здесь относятся только к выбранному месяцу.';
+  const max=Math.max(1,...rows.map(row=>mandatoryQuota(row.target)));
+  const head=document.getElementById('mandatoryHead');head.innerHTML='<tr><th scope="col">Активность · норма</th>'+Array.from({length:max},(_,i)=>'<th scope="col">'+(i+1)+'</th>').join('')+'<th scope="col">Итог</th><th scope="col"><span class="small">Удалить</span></th></tr>';
+  const body=document.getElementById('mandatoryBody');body.replaceChildren();
+  rows.forEach((row,index)=>{
+    const tr=document.createElement('tr');tr.id='mandatory-row-'+index;
+    const nameCell=document.createElement('td');
+    const name=document.createElement('input');name.className='text-input';name.value=row.name;name.setAttribute('aria-label','Название активности');
+    name.oninput=()=>{row.name=name.value;save()};
+    const label=document.createElement('label');label.className='mandatory-quota';label.textContent='Раз: ';
+    const quota=document.createElement('input');quota.type='number';quota.min='1';quota.max='100';quota.step='1';quota.value=mandatoryQuota(row.target);quota.setAttribute('aria-label','Количество выполнений: '+row.name);
+    quota.onchange=()=>{row.target=mandatoryQuota(quota.value);save();renderMandatoryMonth()};
+    label.appendChild(quota);nameCell.append(name,label);tr.appendChild(nameCell);
+    if(!Array.isArray(row.marks))row.marks=[];
+    for(let i=0;i<max;i++){
+      const td=document.createElement('td');
+      if(i<mandatoryQuota(row.target)){
+        const check=document.createElement('input');check.type='checkbox';check.checked=!!row.marks[i];check.setAttribute('aria-label',row.name+': выполнение '+(i+1));
+        check.onchange=()=>{row.marks[i]=check.checked;save();updateMandatoryTotals()};
+        td.appendChild(check);
+      }else{td.textContent='—';td.className='mandatory-inactive';td.setAttribute('aria-label','Не требуется')}
+      tr.appendChild(td);
+    }
+    const total=document.createElement('td');total.className='mandatory-total';tr.appendChild(total);
+    const action=document.createElement('td'),remove=document.createElement('button');remove.className='icon-btn';remove.textContent='×';remove.setAttribute('aria-label','Удалить активность: '+row.name);
+    remove.onclick=()=>deleteWithUndo(rows,index,renderMandatoryMonth,'Активность удалена');
+    action.appendChild(remove);tr.appendChild(action);body.appendChild(tr);
+  });
+  updateMandatoryTotals();
+  if(created){localStorage.setItem(KEY,JSON.stringify(state));if(window.MagicPlannerCloud)save()}
+}
+document.getElementById('mandatoryAddForm').onsubmit=e=>{
+  e.preventDefault();const name=document.getElementById('mandatoryName'),count=document.getElementById('mandatoryCount');
+  const value=name.value.trim();if(!value)return;
+  ensureMandatoryMonth(mandatoryPeriod);
+  state.mandatoryMonths[mandatoryPeriod].rows.push({id:crypto.randomUUID(),name:value,target:mandatoryQuota(count.value),marks:[]});
+  save();name.value='';renderMandatoryMonth();name.focus();
+};
+document.getElementById('mandatoryPrev').onclick=()=>{mandatoryPeriod=shiftMandatoryMonth(mandatoryPeriod,-1);renderMandatoryMonth()};
+document.getElementById('mandatoryNext').onclick=()=>{const next=shiftMandatoryMonth(mandatoryPeriod,1);if(next<=monthlyFocusPeriod().key){mandatoryPeriod=next;renderMandatoryMonth()}};
+function openCurrentMandatoryMonth(){mandatoryPeriod=monthlyFocusPeriod().key;renderMandatoryMonth()}
+document.getElementById('mandatoryToday').onclick=openCurrentMandatoryMonth;
+function refreshMandatoryCalendar(){
+  const current=monthlyFocusPeriod().key;
+  if(current!==mandatoryCalendarMonth){mandatoryCalendarMonth=current;mandatoryPeriod=current;renderMandatoryMonth()}
+}
+setInterval(refreshMandatoryCalendar,60000);
+window.addEventListener('focus',refreshMandatoryCalendar);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshMandatoryCalendar()});
+
 function renderAll(){
+  renderMandatoryMonth();
   renderWeek();
   renderHabits();
   renderGoals();
