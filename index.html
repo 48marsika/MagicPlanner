@@ -446,6 +446,14 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 .budget-expense-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
 @media(max-width:620px){.budget-kpis{grid-template-columns:1fr}.budget-expense-form{grid-template-columns:1fr 1fr}.budget-expense-form .btn{grid-column:1/-1}}
 @media(max-width:390px){.budget-expense-form{grid-template-columns:1fr}}
+
+.budget-summary{margin-top:28px;border-top:2px solid var(--line);padding-top:20px}
+.budget-summary h3{font-family:Georgia,serif;font-weight:500;font-size:25px}
+.budget-summary select{padding:9px;border:1px solid var(--line);border-radius:10px;background:var(--panel-strong);color:var(--text)}
+.budget-summary-table tfoot{font-weight:700}
+.budget-summary-table th:first-child{position:sticky;left:0;z-index:1;background:var(--panel-strong)}
+.budget-summary-table{min-width:750px}
+.budget-summary .budget-chart-scroll svg{min-width:720px}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -550,6 +558,16 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 <button class="btn" type="submit">+ Записать</button></form><p class="small" id="budgetExpenseMessage" role="status"></p></div>
 <details class="budget-journal" open><summary>Расходы выбранного месяца <span id="budgetExpenseCount"></span></summary><div id="budgetExpenseList"></div></details>
 <div class="budget-chart-panel"><h3>План и факт по месяцам</h3><p class="small">Здесь показаны сохранённые месяцы, включая будущие. Нулевой факт означает, что расходы ещё не внесены.</p><div id="budgetHistoryChart" class="budget-chart-scroll"></div></div>
+<div class="budget-summary">
+<div class="row-between"><h3>📊 Сводка расходов</h3><label>Год <select id="budgetSummaryYear" aria-label="Год сводки расходов"></select></label></div>
+<p class="small">Сравниваются сохранённые месяцы выбранного года. Будущие месяцы отмечены отдельно; нулевой факт означает отсутствие записей. Остаток — план минус факт.</p>
+<div id="budgetSummaryKpis" class="budget-kpis"></div>
+<h4>Сравнение месяцев</h4><div class="scrollbox" tabindex="0" aria-label="Сравнение расходов по месяцам"><table class="budget-table budget-summary-table"><thead><tr><th>Месяц</th><th>План</th><th>Факт</th><th>Остаток</th><th>Потрачено от плана</th><th>Изменение факта</th></tr></thead><tbody id="budgetSummaryMonths"></tbody><tfoot id="budgetSummaryMonthsFoot"></tfoot></table></div>
+<p class="small">Изменение факта сравнивается с предыдущим календарным месяцем, только когда оба месяца завершены. Текущий месяц ещё неполный.</p>
+<div class="budget-chart-panel"><h3>Динамика плана и расходов</h3><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span></div><div id="budgetTrendChart" class="budget-chart-scroll"></div></div>
+<h4>Категории по месяцам</h4><div class="scrollbox" tabindex="0" aria-label="Сводка категорий по месяцам"><table class="budget-table budget-summary-table"><thead id="budgetSummaryCategoriesHead"></thead><tbody id="budgetSummaryCategories"></tbody><tfoot id="budgetSummaryCategoriesFoot"></tfoot></table></div>
+<div class="budget-chart-panel"><h3>План и факт по категориям за выбранные месяцы</h3><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span><span class="budget-over-key">● Перерасход</span></div><div id="budgetSummaryCategoryChart" class="budget-chart-scroll"></div></div>
+</div>
 </div>
 </section>
 <section id="goals" class="view">
@@ -1631,6 +1649,7 @@ function renderBudgetCharts(){
   document.getElementById('budgetCategoryChart').innerHTML=budgetSvgBars(totals.rows,'План и фактические расходы за '+mandatoryMonthTitle(budgetPeriod),'план','факт');
   const history=Object.keys(state.expenseBudgets).sort().map(key=>{const t=expenseBudgetTotals(state.expenseBudgets[key]);return {name:mandatoryMonthTitle(key),plan:t.plan,actual:t.actual}});
   document.getElementById('budgetHistoryChart').innerHTML=budgetSvgBars(history,'Сравнение бюджета по месяцам','план','факт');
+  renderBudgetSummary();
 }
 function renderBudgetExpenses(){
   const list=document.getElementById('budgetExpenseList'),record=state.expenseBudgets[budgetPeriod];
@@ -1684,6 +1703,70 @@ document.getElementById('budgetPrev').onclick=()=>renderExpenseBudget(shiftManda
 document.getElementById('budgetNext').onclick=()=>renderExpenseBudget(shiftMandatoryMonth(budgetPeriod,1));
 document.getElementById('budgetToday').onclick=()=>renderExpenseBudget(monthlyFocusPeriod().key);
 document.getElementById('budgetMonth').onchange=e=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value))renderExpenseBudget(e.target.value)};
+
+
+let budgetSummaryYear=monthlyFocusPeriod().key.slice(0,4);
+function budgetSummaryData(year){
+  const keys=Object.keys(state.expenseBudgets||{}).filter(key=>key.startsWith(year+'-')).sort();
+  const months=keys.map(key=>({key,...expenseBudgetTotals(state.expenseBudgets[key])}));
+  const categories=expenseBudgetCategories.map(category=>{
+    const plan=months.reduce((sum,month)=>sum+month.rows.find(r=>r.id===category.id).plan,0);
+    const actual=months.reduce((sum,month)=>sum+month.rows.find(r=>r.id===category.id).actual,0);
+    return {id:category.id,name:category.name,plan,actual,remaining:plan-actual};
+  });
+  const plan=months.reduce((sum,m)=>sum+m.plan,0),actual=months.reduce((sum,m)=>sum+m.actual,0);
+  return {months,categories,plan,actual,remaining:plan-actual};
+}
+function budgetTrendSvg(months){
+  if(!months.length)return '<p class="small">За этот год пока нет сохранённых месяцев.</p>';
+  const width=800,height=320,left=90,right=30,top=35,bottom=75;
+  const max=Math.max(1,...months.flatMap(m=>[m.plan,m.actual]));
+  const first=Number(months[0].key.slice(5)),last=Number(months.at(-1).key.slice(5)),span=Math.max(1,last-first);
+  const x=m=>months.length===1?(width+left-right)/2:left+(Number(m.key.slice(5))-first)/span*(width-left-right);
+  const y=v=>height-bottom-v/max*(height-top-bottom);
+  let svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+width+' '+height+'" role="img" aria-label="Динамика плана и фактических расходов"><title>План и факт по сохранённым месяцам</title>';
+  for(let i=0;i<=4;i++){
+    const value=max*i/4,yy=y(value);
+    svg+='<line x1="'+left+'" x2="'+(width-right)+'" y1="'+yy+'" y2="'+yy+'" stroke="currentColor" opacity=".12"/><text x="'+(left-10)+'" y="'+(yy+4)+'" text-anchor="end" fill="currentColor" font-size="11">'+esc(budgetMoney(Math.round(value)))+'</text>';
+  }
+  for(const [field,color] of [['plan','var(--budget-plan)'],['actual','var(--budget-actual)']]){
+    // Leave gaps when a calendar month has no saved record.
+    let previous=null;
+    months.forEach(month=>{
+      if(previous&&Number(month.key.slice(5))-Number(previous.key.slice(5))===1)svg+='<line x1="'+x(previous)+'" y1="'+y(previous[field])+'" x2="'+x(month)+'" y2="'+y(month[field])+'" stroke="'+color+'" stroke-width="3"/>';
+      svg+='<circle cx="'+x(month)+'" cy="'+y(month[field])+'" r="5" fill="'+color+'"><title>'+esc(mandatoryMonthTitle(month.key)+': '+(field==='plan'?'план ':'факт ')+budgetMoney(month[field]))+'</title></circle>';
+      previous=month;
+    });
+  }
+  months.forEach(month=>{svg+='<text x="'+x(month)+'" y="'+(height-bottom+25)+'" text-anchor="end" transform="rotate(-35 '+x(month)+' '+(height-bottom+25)+')" fill="currentColor" font-size="12">'+esc(monthNames[Number(month.key.slice(5))-1])+'</text>'});
+  return svg+'</svg>';
+}
+function renderBudgetSummary(){
+  const select=document.getElementById('budgetSummaryYear');
+  const years=[...new Set([monthlyFocusPeriod().key.slice(0,4),budgetSummaryYear,...Object.keys(state.expenseBudgets||{}).map(key=>key.slice(0,4))])].sort();
+  select.innerHTML=years.map(year=>'<option value="'+year+'">'+year+'</option>').join('');select.value=budgetSummaryYear;
+  const data=budgetSummaryData(budgetSummaryYear),current=monthlyFocusPeriod().key;
+  document.getElementById('budgetSummaryKpis').innerHTML=[['План сохранённых месяцев',data.plan],['Всего потрачено',data.actual],[data.remaining<0?'Общий перерасход':'Общий остаток',Math.abs(data.remaining)]].map(([label,value],i)=>'<div class="budget-kpi'+(i===2&&data.remaining<0?' budget-over-text':'')+'"><span>'+label+'</span><strong>'+budgetMoney(value)+'</strong></div>').join('');
+  const cell=(value,negative=false)=>'<td'+(negative?' class="budget-over-text"':'')+'>'+value+'</td>';
+  document.getElementById('budgetSummaryMonths').innerHTML=data.months.map(month=>{
+    const previousKey=shiftMandatoryMonth(month.key,-1),previousRecord=state.expenseBudgets[previousKey];
+    let change='—';
+    if(month.key<current&&previousRecord){
+      const difference=month.actual-expenseBudgetTotals(previousRecord).actual;
+      change=(difference>0?'+':difference<0?'−':'')+budgetMoney(Math.abs(difference));
+    }
+    const ratio=month.plan?new Intl.NumberFormat('ru-RU',{maximumFractionDigits:1}).format(month.actual/month.plan*100)+'%':month.actual?'Без плана':'—';
+    const status=month.key>current?' · будущий':month.key===current?' · текущий':'';
+    return '<tr><th scope="row">'+mandatoryMonthTitle(month.key)+status+'</th>'+cell(budgetMoney(month.plan))+cell(budgetMoney(month.actual))+cell(budgetMoney(month.plan-month.actual),month.actual>month.plan)+cell(ratio)+cell(change)+'</tr>';
+  }).join('');
+  document.getElementById('budgetSummaryMonthsFoot').innerHTML='<tr><th>Итого</th>'+cell(budgetMoney(data.plan))+cell(budgetMoney(data.actual))+cell(budgetMoney(data.remaining),data.remaining<0)+cell('—')+cell('—')+'</tr>';
+  document.getElementById('budgetSummaryCategoriesHead').innerHTML='<tr><th>Категория</th>'+data.months.map(month=>'<th>'+mandatoryMonthTitle(month.key)+' · факт</th>').join('')+'<th>План всего</th><th>Факт всего</th><th>Остаток</th></tr>';
+  document.getElementById('budgetSummaryCategories').innerHTML=data.categories.map(category=>'<tr><th scope="row">'+esc(category.name)+'</th>'+data.months.map(month=>cell(budgetMoney(month.rows.find(r=>r.id===category.id).actual))).join('')+cell(budgetMoney(category.plan))+cell(budgetMoney(category.actual))+cell(budgetMoney(category.remaining),category.remaining<0)+'</tr>').join('');
+  document.getElementById('budgetSummaryCategoriesFoot').innerHTML='<tr><th>Итого</th>'+data.months.map(month=>cell(budgetMoney(month.actual))).join('')+cell(budgetMoney(data.plan))+cell(budgetMoney(data.actual))+cell(budgetMoney(data.remaining),data.remaining<0)+'</tr>';
+  document.getElementById('budgetTrendChart').innerHTML=budgetTrendSvg(data.months);
+  document.getElementById('budgetSummaryCategoryChart').innerHTML=data.months.length?budgetSvgBars(data.categories,'Суммарный план и факт по категориям за '+budgetSummaryYear,'план','факт'):'<p class="small">Нет данных за выбранный год.</p>';
+}
+document.getElementById('budgetSummaryYear').onchange=e=>{budgetSummaryYear=e.target.value;renderBudgetSummary()};
 
 function renderAll(){
   renderMandatoryMonth();
