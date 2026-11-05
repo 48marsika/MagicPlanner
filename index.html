@@ -348,6 +348,15 @@ body:not([data-month-art]) .month-hero-text{padding:0}
 
 
 body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),body[data-month-art="february"] .btn:not(.secondary):not(.ghost):not(.danger),body[data-month-art="october"] .btn:not(.secondary):not(.ghost):not(.danger){color:#211a24}
+
+.monthly-goal-box{margin-bottom:16px}
+.monthly-goal-box h3{font-family:Georgia,serif;font-weight:500;font-size:24px;margin:0}
+.monthly-goal-box .row-between{flex-wrap:wrap}
+.monthly-goal-selects{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.monthly-goal-selects select{width:100%;min-width:0;min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--panel-strong);color:var(--text)}
+.monthly-goal-selects select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:620px){.monthly-goal-selects{grid-template-columns:1fr}}
+
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -372,6 +381,15 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
       <div class="section-title">
         <div><h2>📅 Неделя</h2><div class="sub">Вся неделя перед глазами</div></div>
         <button class="btn" id="clearWeekBtn">Новая неделя</button>
+      </div>
+      <div class="day-card monthly-goal-box" id="monthlyGoalBox">
+        <div class="row-between"><h3>🎯 Цель на месяц</h3><span class="badge" id="monthlyGoalPeriod"></span></div>
+        <p class="small">Выбери до двух целей из раздела «Цели». Изменения названий появятся здесь автоматически.</p>
+        <div class="monthly-goal-selects">
+          <select id="monthlyGoalFirst" aria-label="Первая цель на месяц"></select>
+          <select id="monthlyGoalSecond" aria-label="Вторая цель на месяц"></select>
+        </div>
+        <p class="small" id="monthlyGoalHint"></p>
       </div>
       <div id="weekGrid" class="grid-week"></div>
     </div>
@@ -568,6 +586,7 @@ const defaults={
   habits:[{name:'Чтение',checks:{}},{name:'Английский',checks:{}},{name:'Испанский',checks:{}}],
   yearGoals:[],
   monthGoals:{},
+  monthlyGoalChoices:{},
   treasury:{
     selectedYear:2026,selectedMonth:8,
     months:{},
@@ -637,7 +656,72 @@ function ensureTreasuryMonth(y,m){
 }
 
 /* WEEK */
+
+/* Monthly focus references annual goals by stable ID, independently for each month. */
+function ensureGoalIds(){
+  const used=new Set();
+  let changed=false;
+  state.yearGoals.forEach((goal,index)=>{
+    if(!goal.id || used.has(goal.id)){
+      let id='legacy-goal-'+index;
+      while(used.has(id))id+='-copy';
+      goal.id=id;changed=true;
+    }
+    used.add(goal.id);
+  });
+  if(changed)localStorage.setItem(KEY,JSON.stringify(state));
+}
+function monthlyFocusPeriod(){
+  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Moscow',year:'numeric',month:'2-digit'}).formatToParts(new Date());
+  const year=parts.find(p=>p.type==='year').value;
+  const month=parts.find(p=>p.type==='month').value;
+  return {key:year+'-'+month,label:monthNames[Number(month)-1]+' '+year};
+}
+let displayedFocusMonth='';
+function renderMonthlyFocus(){
+  ensureGoalIds();
+  if(!state.monthlyGoalChoices || typeof state.monthlyGoalChoices!=='object')state.monthlyGoalChoices={};
+  const period=monthlyFocusPeriod();
+  displayedFocusMonth=period.key;
+  document.getElementById('monthlyGoalPeriod').textContent=period.label;
+  const stored=state.monthlyGoalChoices[period.key];
+  const selected=(Array.isArray(stored)?stored:[]).slice(0,2);
+  const goals=state.yearGoals;
+  const first=document.getElementById('monthlyGoalFirst'),second=document.getElementById('monthlyGoalSecond');
+  [first,second].forEach((select,slot)=>{
+    const other=selected[1-slot];
+    select.innerHTML='<option value="">— Не выбрано —</option>'+goals.map(goal=>
+      '<option value="'+esc(goal.id)+'"'+(goal.id===other?' disabled':'')+'>'+
+      esc(goal.text.trim()||'Цель без названия')+(Number(goal.progress)>=100?' ✓':'')+'</option>'
+    ).join('');
+    select.value=goals.some(goal=>goal.id===selected[slot])?selected[slot]:'';
+    select.disabled=!goals.length;
+  });
+  document.getElementById('monthlyGoalHint').textContent=goals.length?
+    'Выбор сохраняется отдельно для каждого месяца. ✓ — выполненная цель.':
+    'Сначала добавь цели во вкладке «Цели» — они появятся в этих списках.';
+}
+function chooseMonthlyFocus(slot,value){
+  const period=monthlyFocusPeriod();
+  const stored=state.monthlyGoalChoices[period.key];
+  const selected=(Array.isArray(stored)?stored:[]).slice(0,2);
+  if(value && (!state.yearGoals.some(goal=>goal.id===value)||selected[1-slot]===value))return;
+  selected[slot]=value;
+  state.monthlyGoalChoices[period.key]=[selected[0]||'',selected[1]||''];
+  save();
+  renderMonthlyFocus();
+}
+document.getElementById('monthlyGoalFirst').onchange=e=>chooseMonthlyFocus(0,e.target.value);
+document.getElementById('monthlyGoalSecond').onchange=e=>chooseMonthlyFocus(1,e.target.value);
+function refreshMonthlyFocus(){
+  if(monthlyFocusPeriod().key!==displayedFocusMonth)renderMonthlyFocus();
+}
+setInterval(refreshMonthlyFocus,60000);
+window.addEventListener('focus',refreshMonthlyFocus);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshMonthlyFocus()});
+
 function renderWeek(){
+  renderMonthlyFocus();
   const g=document.getElementById('weekGrid');g.innerHTML='';
   days.forEach(day=>{
     const c=document.createElement('div');c.className='day-card';
@@ -744,18 +828,19 @@ function goalRow(obj,rm){
     <button class="icon-btn del">×</button>`;
   r.querySelector('.check').onchange=e=>{obj.progress=e.target.checked?100:0;save();renderGoals()}
   if(Number(obj.progress)>=100)r.querySelector('.goaltext').classList.add('goal-done');
-  r.querySelector('.goaltext').oninput=e=>{obj.text=e.target.value;save()}
+  r.querySelector('.goaltext').oninput=e=>{obj.text=e.target.value;save();renderMonthlyFocus()}
   r.querySelector('.del').onclick=rm;
   return r;
 }
 function renderGoals(){
+  renderMonthlyFocus();
   const yg=document.getElementById('yearGoals');yg.innerHTML='';
   if(!state.yearGoals.length)yg.innerHTML='<div class="empty">Пока целей нет. Нажми «Добавить цель».</div>';
   state.yearGoals.forEach((g,i)=>yg.appendChild(goalRow(g,()=>{state.yearGoals.splice(i,1);save();renderGoals()})));
   const done=state.yearGoals.filter(g=>Number(g.progress)>=100).length;
   document.getElementById('yearGoalCount').textContent='Выполнено '+done+' из '+state.yearGoals.length;
 }
-document.getElementById('addYearGoal').onclick=()=>{state.yearGoals.push({text:'',progress:0});save();renderGoals();toast('Цель добавлена')}
+document.getElementById('addYearGoal').onclick=()=>{state.yearGoals.push({id:crypto.randomUUID(),text:'',progress:0});save();renderGoals();toast('Цель добавлена')}
 
 /* PAYMENT-MONTH-V3: текущий месяц сразу при входе, история не удаляется. */
 const paymentToday=new Date();
