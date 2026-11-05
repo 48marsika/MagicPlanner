@@ -396,7 +396,7 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 .recurring-row{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding:12px 0;gap:12px;overflow-wrap:anywhere}
 #recurringList{margin-top:14px}
 
-.tabbar{grid-template-columns:repeat(6,minmax(0,1fr))}
+.tabbar{grid-template-columns:repeat(4,minmax(0,1fr))}
 .mandatory-add{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:16px 0}
 .mandatory-add>.text-input{flex:1;min-width:170px}
 .mandatory-add label{display:flex;align-items:center;gap:8px;font-size:13px}
@@ -478,6 +478,9 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 #treasury-expenses,#treasury-overview{padding-top:12px}
 @media(max-width:760px){#overviewKpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:400px){#overviewKpis{grid-template-columns:1fr}}
+
+.week-extra-section{scroll-margin-top:20px}
+.tabbar .navbtn{font-size:11px;padding:8px 3px}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -537,9 +540,18 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
         </form>
       </dialog>
     </div>
-  </section>
+  <div id="mandatory" class="week-extra-section">
+<div class="card">
+  <div class="section-title"><div><h2>✅ Обязательное на месяц</h2><div class="sub">Одна галочка — одно выполнение, без привязки к дню.</div></div></div>
+  <div class="month-nav"><button id="mandatoryPrev" class="btn ghost" aria-label="Предыдущий месяц">←</button><strong id="mandatoryMonthTitle"></strong><button id="mandatoryNext" class="btn ghost" aria-label="Следующий месяц">→</button><button id="mandatoryToday" class="btn secondary">Текущий месяц</button></div>
+  <form id="mandatoryAddForm" class="mandatory-add"><input id="mandatoryName" class="text-input" aria-label="Название активности" placeholder="Добавить активность…" required maxlength="300"><label>Раз в месяц <input id="mandatoryCount" type="number" min="1" max="100" step="1" value="4" required></label><button class="btn" type="submit">Добавить</button></form>
+  <p class="small" id="mandatoryMonthHint"></p>
+  <div class="scrollbox mandatory-scroll" tabindex="0" aria-label="Таблица обязательных дел на месяц"><table class="mandatory-table"><thead id="mandatoryHead"></thead><tbody id="mandatoryBody"></tbody></table></div>
+  <p class="small" id="mandatorySummary"></p>
+</div>
 
-  <section id="habits" class="view">
+</div>
+<div id="habits" class="week-extra-section">
     <div class="card">
       <div class="section-title">
         <div><h2>🌱 Привычки</h2><div class="sub">Сегодняшние привычки и твой прогресс за месяц и год</div></div>
@@ -558,19 +570,12 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
       </div>
       <div class="small habit-hint">Учитываются все сохранённые галочки, включая прошлые дни. Сегодняшняя отметка автоматически обновляет проценты.</div>
     </div>
-  </section>
-
-  <section id="mandatory" class="view">
-<div class="card">
-  <div class="section-title"><div><h2>✅ Обязательное на месяц</h2><div class="sub">Одна галочка — одно выполнение, без привязки к дню.</div></div></div>
-  <div class="month-nav"><button id="mandatoryPrev" class="btn ghost" aria-label="Предыдущий месяц">←</button><strong id="mandatoryMonthTitle"></strong><button id="mandatoryNext" class="btn ghost" aria-label="Следующий месяц">→</button><button id="mandatoryToday" class="btn secondary">Текущий месяц</button></div>
-  <form id="mandatoryAddForm" class="mandatory-add"><input id="mandatoryName" class="text-input" aria-label="Название активности" placeholder="Добавить активность…" required maxlength="300"><label>Раз в месяц <input id="mandatoryCount" type="number" min="1" max="100" step="1" value="4" required></label><button class="btn" type="submit">Добавить</button></form>
-  <p class="small" id="mandatoryMonthHint"></p>
-  <div class="scrollbox mandatory-scroll" tabindex="0" aria-label="Таблица обязательных дел на месяц"><table class="mandatory-table"><thead id="mandatoryHead"></thead><tbody id="mandatoryBody"></tbody></table></div>
-  <p class="small" id="mandatorySummary"></p>
-</div>
-
+  </div>
 </section>
+
+  
+
+  
 <section id="goals" class="view">
     <div class="card">
       <div class="section-title">
@@ -757,8 +762,8 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 
 <nav class="tabbar">
   <button class="navbtn active" data-view="week"><span>📅</span><span>Неделя</span></button>
-  <button class="navbtn" data-view="mandatory"><span>✅</span><span>Месяц</span></button>
-  <button class="navbtn" data-view="habits"><span>🌱</span><span>Привычки</span></button>
+
+
   <button class="navbtn" data-view="goals"><span>🎯</span><span>Цели</span></button>
   <button class="navbtn" data-view="treasury"><span>💰</span><span>Казна</span></button>
   <button class="navbtn" data-view="body"><span>🧍</span><span>Тело</span></button>
@@ -1599,6 +1604,8 @@ document.getElementById('resetBtn').onclick=()=>{if(confirm('Удалить вс
 
 /* NAV */
 function openPlannerView(view){
+  if(view==='mandatory'||view==='habits')view='week';
+  if(view==='week')openCurrentMandatoryMonth();
   if(view==='treasury')openTreasuryOverview();
   if(view==='mandatory')openCurrentMandatoryMonth();
   document.querySelectorAll('.navbtn').forEach(button=>button.classList.toggle('active',button.dataset.view===view));
