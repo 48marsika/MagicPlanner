@@ -481,6 +481,9 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 
 .week-extra-section{scroll-margin-top:20px}
 .tabbar .navbtn{font-size:11px;padding:8px 3px}
+
+.budget-dynamics>summary{cursor:pointer;font-family:Georgia,serif;font-weight:500;font-size:25px;padding:8px 0}
+.budget-dynamics>summary:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -610,7 +613,7 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 <div id="budgetSummaryKpis" class="budget-kpis"></div>
 <h4>Сравнение месяцев</h4><div class="scrollbox" tabindex="0" aria-label="Сравнение расходов по месяцам"><table class="budget-table budget-summary-table"><thead><tr><th>Месяц</th><th>План</th><th>Факт</th><th>Остаток</th><th>Потрачено от плана</th><th>Изменение факта</th></tr></thead><tbody id="budgetSummaryMonths"></tbody><tfoot id="budgetSummaryMonthsFoot"></tfoot></table></div>
 <p class="small">Изменение факта сравнивается с предыдущим календарным месяцем, только когда оба месяца завершены. Текущий месяц ещё неполный.</p>
-<div class="budget-chart-panel"><h3>Динамика плана и расходов</h3><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span></div><div id="budgetTrendChart" class="budget-chart-scroll"></div></div>
+<details class="budget-chart-panel budget-dynamics"><summary>Динамика плана и расходов</summary><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span></div><div id="budgetTrendChart" class="budget-chart-scroll"></div></details>
 <h4>Категории по месяцам</h4><div class="scrollbox" tabindex="0" aria-label="Сводка категорий по месяцам"><table class="budget-table budget-summary-table"><thead id="budgetSummaryCategoriesHead"></thead><tbody id="budgetSummaryCategories"></tbody><tfoot id="budgetSummaryCategoriesFoot"></tfoot></table></div>
 <div class="budget-chart-panel"><h3>План и факт по категориям за выбранные месяцы</h3><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span><span class="budget-over-key">● Перерасход</span></div><div id="budgetSummaryCategoryChart" class="budget-chart-scroll"></div></div>
 </div>
