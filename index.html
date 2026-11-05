@@ -385,6 +385,16 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 .inbox-actions select{min-width:0;padding:9px;border:1px solid var(--line);border-radius:10px;background:var(--panel-strong);color:var(--text)}
 .task-row>.check,.task-row>.del{flex-shrink:0}
 @media(max-width:620px){.inbox-row{flex-direction:column;align-items:stretch}.inbox-actions select{flex:1}.inbox-form .btn{padding:10px}}
+
+.undo-bar[hidden]{display:none}
+.undo-bar{position:fixed;z-index:100;bottom:100px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:max-content;max-width:calc(100% - 24px);padding:12px 16px;border-radius:16px;border:1px solid var(--line);background:var(--panel-strong);color:var(--text);box-shadow:var(--shadow)}
+.recurring-panel{margin-bottom:16px}
+.recurring-panel>summary{font-family:Georgia,serif;font-size:23px;cursor:pointer}
+#recurringDays{display:flex;flex-wrap:wrap;gap:10px;border:1px solid var(--line);border-radius:12px;margin:12px 0}
+#recurringDays label{display:flex;align-items:center;gap:5px;font-size:13px;padding:5px}
+#recurringDays input{accent-color:var(--accent)}
+.recurring-row{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding:12px 0;gap:12px;overflow-wrap:anywhere}
+#recurringList{margin-top:14px}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -425,7 +435,7 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
         <form id="inboxForm" class="inbox-form"><input id="inboxText" class="text-input" placeholder="Записать задачу или идею…" aria-label="Новая запись во входящих" required maxlength="2000"><button class="btn" type="submit">Добавить</button></form>
         <div id="inboxList"></div>
       </details>
-      <div id="weekGrid" class="grid-week"></div>
+      <details class="day-card recurring-panel"><summary>🔁 Повторяющиеся задачи</summary><p class="small">Добавляются в текущую неделю и в каждую новую. Удаление правила не удаляет уже созданные задачи.</p><form id="recurringForm"><input id="recurringText" class="text-input" placeholder="Например: Испанский — 30 минут" aria-label="Название повторяющейся задачи" required maxlength="2000"><fieldset id="recurringDays"><legend>Дни недели</legend></fieldset><button type="submit" class="btn">Добавить повторение</button></form><div id="recurringList"></div></details><div id="weekGrid" class="grid-week"></div>
       <details class="week-history"><summary>📚 История недель <span id="weekHistoryCount"></span></summary><div id="weekHistoryList"></div></details>
       <dialog id="newWeekDialog" class="week-dialog">
         <form method="dialog"><div class="row-between"><h3>Новая неделя</h3><button class="btn ghost" value="cancel" aria-label="Закрыть">×</button></div>
@@ -607,7 +617,7 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
   <button class="navbtn" data-view="body"><span>🧍</span><span>Тело</span></button>
   <button class="navbtn" data-view="settings"><span>⚙️</span><span>Настройки</span></button>
 </nav>
-<div id="toast" class="toast">Сохранено</div>
+<div id="toast" class="toast">Сохранено</div><div id="undoBar" class="undo-bar" hidden><span id="undoMessage"></span><button id="undoDelete" class="btn secondary">Отменить удаление</button><button id="dismissUndo" class="icon-btn" aria-label="Закрыть">×</button></div>
 
 <script>
 const KEY='yuliaPlannerV3';
@@ -635,6 +645,7 @@ const defaults={
   weekStart:null,
   weekHistory:[],
   inbox:[],
+  recurringTasks:[],
   treasury:{
     selectedYear:2026,selectedMonth:8,
     months:{},
@@ -856,7 +867,7 @@ document.getElementById('confirmNewWeek').onclick=()=>{
   const choices=Array.from(document.querySelectorAll('.week-transfer-row')).filter(row=>row.querySelector('input').checked).map(row=>({day:row.dataset.day,index:Number(row.dataset.index),target:row.querySelector('select').value}));
   const next=buildNextWeek(state.week,choices),start=nextWeekStart();
   state.weekHistory.push({start:state.weekStart,archivedAt:new Date().toISOString(),tasks:clone(state.week)});
-  state.week=next;state.weekStart=start;
+  undoStack.length=0;updateUndoBar();state.week=addRecurringToWeek(next,state.recurringTasks);state.weekStart=start;
   save();document.getElementById('newWeekDialog').close();renderWeek();toast('Прошедшая неделя сохранена в истории');
 };
 
@@ -928,7 +939,7 @@ function renderInbox(){
     const move=document.createElement('button');move.className='btn secondary';move.textContent='В неделю';
     move.onclick=()=>{if(moveInboxTask(task.id,day.value)){save();renderWeek();toast('Задача перенесена: '+day.value)}};
     const remove=document.createElement('button');remove.className='icon-btn';remove.textContent='×';remove.setAttribute('aria-label','Удалить запись');
-    remove.onclick=()=>{const index=state.inbox.findIndex(t=>t.id===task.id);if(index>=0){state.inbox.splice(index,1);save();renderInbox()}};
+    remove.onclick=()=>{const index=state.inbox.findIndex(t=>t.id===task.id);if(index>=0){deleteWithUndo(state.inbox,index,renderInbox,'Запись удалена')}};
     actions.append(day,move,remove);row.append(content,actions);list.appendChild(row);
   });
 }
@@ -937,7 +948,65 @@ document.getElementById('inboxForm').onsubmit=e=>{
   if(addInboxTask(input.value)){save();input.value='';renderInbox();input.focus()}
 };
 
+
+const undoStack=[];
+function updateUndoBar(){
+  document.getElementById('undoBar').hidden=!undoStack.length;
+  document.getElementById('undoMessage').textContent=undoStack.at(-1)?.label||'';
+}
+function deleteWithUndo(list,index,render,label='Запись удалена'){
+  if(index<0||index>=list.length)return;
+  const [item]=list.splice(index,1);
+  undoStack.push({label,restore:()=>{list.splice(Math.min(index,list.length),0,item);render()}});
+  if(undoStack.length>20)undoStack.shift();
+  save();render();updateUndoBar();
+}
+document.getElementById('undoDelete').onclick=()=>{const action=undoStack.pop();if(!action)return;action.restore();save();updateUndoBar();toast('Удаление отменено')};
+document.getElementById('dismissUndo').onclick=()=>{undoStack.length=0;updateUndoBar()};
+function addRecurringToWeek(week,rules){
+  (rules||[]).forEach(rule=>{
+    (rule.days||[]).filter(day=>days.includes(day)).forEach(day=>{
+      const list=week[day]||(week[day]=[]);
+      if(list.some(task=>task.recurringId===rule.id))return;
+      const task={text:rule.text,done:false,recurringId:rule.id};
+      const blank=list.findIndex(t=>!t.done&&!String(t.text||'').trim()&&!t.goalId);
+      if(blank>=0)list[blank]=task;else list.push(task);
+    });
+  });return week;
+}
+function createRecurringTask(text,selectedDays){
+  const value=String(text||'').trim(),chosen=[...new Set(selectedDays)].filter(day=>days.includes(day));
+  if(!value||!chosen.length)return false;
+  if(!Array.isArray(state.recurringTasks))state.recurringTasks=[];
+  const rule={id:crypto.randomUUID(),text:value,days:chosen};
+  state.recurringTasks.push(rule);addRecurringToWeek(state.week,[rule]);return true;
+}
+function renderRecurringTasks(){
+  if(!Array.isArray(state.recurringTasks))state.recurringTasks=[];
+  const list=document.getElementById('recurringList');list.replaceChildren();
+  if(!state.recurringTasks.length){list.textContent='Повторений пока нет.';return;}
+  state.recurringTasks.forEach((rule,index)=>{
+    const row=document.createElement('div');row.className='recurring-row';
+    const text=document.createElement('div');text.textContent=rule.text;
+    const note=document.createElement('div');note.className='small';note.textContent=rule.days.join(', ');text.appendChild(note);
+    const remove=document.createElement('button');remove.className='icon-btn';remove.textContent='×';remove.setAttribute('aria-label','Удалить повторение: '+rule.text);
+    remove.onclick=()=>deleteWithUndo(state.recurringTasks,index,renderRecurringTasks,'Повторение удалено');
+    row.append(text,remove);list.appendChild(row);
+  });
+}
+days.forEach((day,index)=>{
+  const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.value=day;input.checked=index===0;
+  label.append(input,document.createTextNode(day));document.getElementById('recurringDays').appendChild(label);
+});
+document.getElementById('recurringForm').onsubmit=e=>{
+  e.preventDefault();const input=document.getElementById('recurringText');
+  const selected=Array.from(document.querySelectorAll('#recurringDays input:checked')).map(i=>i.value);
+  if(!selected.length){toast('Выбери хотя бы один день');return;}
+  if(createRecurringTask(input.value,selected)){save();input.value='';renderWeek();toast('Повторение добавлено в текущую и будущие недели')}
+};
+
 function renderWeek(){
+  renderRecurringTasks();
   renderInbox();
   ensureWeekMetadata();
   document.getElementById('weekPeriodLabel').textContent=weekRangeLabel(state.weekStart);
@@ -954,7 +1023,7 @@ function renderWeek(){
       r.querySelector('.task-content').appendChild(makeTaskGoalSelect(t));
       r.querySelector('.check').onchange=e=>{t.done=e.target.checked;save()}
       r.querySelector('.text-input').oninput=e=>{t.text=e.target.value;save()}
-      r.querySelector('.del').onclick=()=>{state.week[day].splice(i,1);save();renderWeek()}
+      r.querySelector('.del').onclick=()=>{deleteWithUndo(state.week[day],i,renderWeek,'Задача удалена')}
       box.appendChild(r);
     });
     c.querySelector('.add').onclick=()=>{state.week[day].push({text:'',done:false});save();renderWeek()}
@@ -1025,7 +1094,7 @@ function renderHabits(){
       save();
     };
     tr.querySelector('.check').onchange=e=>{checks[k]=e.target.checked;save();renderHabits()};
-    tr.querySelector('.del').onclick=()=>{state.habits.splice(ri,1);save();renderHabits()};
+    tr.querySelector('.del').onclick=()=>{deleteWithUndo(state.habits,ri,renderHabits,'Привычка удалена')};
     tbody.appendChild(tr);
   });
 }
@@ -1058,7 +1127,7 @@ function renderGoals(){
   renderMonthlyFocus();
   const yg=document.getElementById('yearGoals');yg.innerHTML='';
   if(!state.yearGoals.length)yg.innerHTML='<div class="empty">Пока целей нет. Нажми «Добавить цель».</div>';
-  state.yearGoals.forEach((g,i)=>yg.appendChild(goalRow(g,()=>{state.yearGoals.splice(i,1);save();renderGoals()})));
+  state.yearGoals.forEach((g,i)=>yg.appendChild(goalRow(g,()=>{deleteWithUndo(state.yearGoals,i,renderGoals,'Цель удалена')})));
   const done=state.yearGoals.filter(g=>Number(g.progress)>=100).length;
   document.getElementById('yearGoalCount').textContent='Выполнено '+done+' из '+state.yearGoals.length;
 }
@@ -1095,7 +1164,7 @@ function renderPayments(){
       save();
     };
     tr.querySelector('.check').onchange=e=>{p.checks[k]=e.target.checked;save();updatePaymentSummary()};
-    tr.querySelector('.del').onclick=()=>{state.treasury.payments.splice(ri,1);save();renderPayments()};
+    tr.querySelector('.del').onclick=()=>{deleteWithUndo(state.treasury.payments,ri,renderPayments,'Платёж удалён')};
     tb.appendChild(tr);
   });
   updatePaymentSummary();
@@ -1163,7 +1232,7 @@ function fundCard(f,i){
   c.querySelector('.current').onchange=e=>{f.current=e.target.value;save();renderFunds()}
   c.querySelector('.target').onchange=e=>{f.target=e.target.value;save();renderFunds()}
   c.querySelector('.image').onchange=async e=>{const file=e.target.files[0];if(!file)return;f.image=await resizeImage(file);save();renderFunds();toast('Картинка сохранена')}
-  c.querySelector('.del').onclick=()=>{state.treasury.funds.splice(i,1);save();renderFunds()}
+  c.querySelector('.del').onclick=()=>{deleteWithUndo(state.treasury.funds,i,renderFunds,'Копилка удалена')}
   return c;
 }
 function renderFunds(){
@@ -1241,8 +1310,8 @@ document.getElementById('savePersonal').onclick=()=>{state.settings.title=docume
 document.getElementById('removeBg').onclick=()=>{state.settings.customBg='';save();applySettings()}
 document.getElementById('bgUpload').onchange=async e=>{const f=e.target.files[0];if(!f)return;state.settings.customBg=await resizeImage(f,1600);state.settings.monthlyTheme=false;save();applySettings();toast('Фон сохранён')}
 document.getElementById('exportBtn').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));a.download='planner-backup-v3.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-document.getElementById('importFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{state=deepMerge(defaults,JSON.parse(r.result));save();renderAll();toast('Данные восстановлены')}catch(err){alert('Не удалось прочитать файл')}};r.readAsText(f)}
-document.getElementById('resetBtn').onclick=()=>{if(confirm('Удалить все данные планера?')){state=clone(defaults);save();renderAll();toast('Данные очищены')}}
+document.getElementById('importFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{undoStack.length=0;updateUndoBar();state=deepMerge(defaults,JSON.parse(r.result));save();renderAll();toast('Данные восстановлены')}catch(err){alert('Не удалось прочитать файл')}};r.readAsText(f)}
+document.getElementById('resetBtn').onclick=()=>{if(confirm('Удалить все данные планера?')){undoStack.length=0;updateUndoBar();state=clone(defaults);save();renderAll();toast('Данные очищены')}}
 
 /* NAV */
 document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{
@@ -1257,6 +1326,7 @@ document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{
 window.MagicPlannerBridge = {
   getState:()=>clone(state),
   setState:(incoming)=>{
+    undoStack.length=0;updateUndoBar();
     state=deepMerge(defaults,incoming||{});
     localStorage.setItem(KEY,JSON.stringify(state));
     renderAll();
@@ -1327,6 +1397,25 @@ let unsubscribeDoc = null;
 let saveTimer = null;
 let applyingRemote = false;
 let lastRemoteJSON = "";
+let editRevision=0,localDirty=false,cloudWriting=false,deferredRemote=null;
+function editingPlanner(){
+  const el=document.activeElement;
+  return !!el && el.matches('input,textarea,select,[contenteditable="true"]');
+}
+function receiveRemote(remote){
+  const json=JSON.stringify(remote);
+  if(json===JSON.stringify(window.MagicPlannerBridge.getState())){lastRemoteJSON=json;deferredRemote=null;if(!localDirty&&!cloudWriting)setStatus('ok','☁️ Синхронизировано');return;}
+  if(localDirty || cloudWriting)return;
+  if(json===lastRemoteJSON)return;
+  if(editingPlanner()){deferredRemote=remote;return;}
+  applyingRemote=true;
+  try{window.MagicPlannerBridge.setState(remote);lastRemoteJSON=json;deferredRemote=null;}
+  finally{applyingRemote=false;}
+  setStatus('ok','☁️ Обновлено из облака');
+}
+document.addEventListener('focusout',()=>{
+  setTimeout(()=>{if(deferredRemote&&!editingPlanner()&&!localDirty&&!cloudWriting)receiveRemote(deferredRemote)},0);
+});
 
 function setStatus(state, text){
   statusEl.dataset.state = state;
@@ -1337,28 +1426,36 @@ function plannerDocRef(uid){
   return doc(db, "users", uid, "planner", "state");
 }
 
-async function writeCloud(state){
-  if(!currentUser || applyingRemote) return;
-  setStatus('sync','☁️ Сохраняю…');
+
+async function writeCloud(){
+  if(!currentUser || applyingRemote || cloudWriting)return;
+  const user=currentUser,revision=editRevision;
+  const snapshot=window.MagicPlannerBridge.getState();
+  cloudWriting=true;setStatus('sync','☁️ Сохраняю…');
   try{
-    await setDoc(plannerDocRef(currentUser.uid),{
-      state,
-      updatedAt: serverTimestamp(),
-      schemaVersion: 4
-    },{merge:true});
-    setStatus('ok','☁️ Синхронизировано');
+    await setDoc(plannerDocRef(user.uid),{state:snapshot,updatedAt:serverTimestamp(),schemaVersion:4},{merge:true});
+    if(currentUser!==user)return;
+    if(editRevision===revision){
+      localDirty=false;lastRemoteJSON=JSON.stringify(snapshot);
+      setStatus('ok','☁️ Синхронизировано');
+    }else setStatus('sync','☁️ Изменения сохранены на устройстве');
   }catch(err){
     console.error(err);
-    setStatus(navigator.onLine?'error':'offline',navigator.onLine?'⚠️ Ошибка облака':'📱 Офлайн');
+    if(currentUser===user)setStatus(navigator.onLine?'error':'offline',navigator.onLine?'⚠️ Ошибка облака · копия на устройстве':'📱 Офлайн · копия на устройстве');
+  }finally{
+    cloudWriting=false;
+    if(currentUser===user&&localDirty&&!saveTimer)scheduleCloudSave();
   }
 }
-
-window.MagicPlannerCloud = {
-  queueSave(state){
-    if(!currentUser) return;
-    clearTimeout(saveTimer);
-    // Sync after 30 seconds without edits; save() keeps the local copy current.
-    saveTimer = setTimeout(()=>writeCloud(JSON.parse(JSON.stringify(state))),30000);
+function scheduleCloudSave(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{saveTimer=null;writeCloud()},30000);
+}
+window.MagicPlannerCloud={
+  queueSave(){
+    editRevision++;localDirty=true;deferredRemote=null;
+    if(!currentUser)return;
+    setStatus('sync','☁️ Изменения сохранены на устройстве');scheduleCloudSave();
   }
 };
 
@@ -1386,6 +1483,7 @@ form.addEventListener('submit', async (e)=>{
 
 onAuthStateChanged(auth, async (user)=>{
   if(unsubscribeDoc){unsubscribeDoc();unsubscribeDoc=null;}
+  clearTimeout(saveTimer);saveTimer=null;deferredRemote=null;
   currentUser=user||null;
 
   if(!user){
@@ -1402,11 +1500,7 @@ onAuthStateChanged(auth, async (user)=>{
   try{
     const snap=await getDoc(ref);
     if(snap.exists() && snap.data().state){
-      applyingRemote=true;
-      window.MagicPlannerBridge.setState(snap.data().state);
-      lastRemoteJSON=JSON.stringify(snap.data().state);
-      applyingRemote=false;
-      setStatus('ok','☁️ Синхронизировано');
+      if(localDirty){scheduleCloudSave();}else receiveRemote(snap.data().state);
     }else{
       const local=window.MagicPlannerBridge.getState();
       await setDoc(ref,{state:local,updatedAt:serverTimestamp(),schemaVersion:4},{merge:true});
@@ -1416,17 +1510,8 @@ onAuthStateChanged(auth, async (user)=>{
 
     unsubscribeDoc=onSnapshot(ref,(snap)=>{
       if(!snap.exists() || !snap.data().state) return;
-      const remote=snap.data().state;
-      const json=JSON.stringify(remote);
-      if(json===lastRemoteJSON) return;
-      lastRemoteJSON=json;
-      const localJSON=JSON.stringify(window.MagicPlannerBridge.getState());
-      if(json!==localJSON){
-        applyingRemote=true;
-        window.MagicPlannerBridge.setState(remote);
-        applyingRemote=false;
-        setStatus('ok','☁️ Обновлено из облака');
-      }
+      if(snap.metadata.hasPendingWrites)return;
+      receiveRemote(snap.data().state);
     },(err)=>{
       console.error(err);
       setStatus('error','⚠️ Нет доступа к облаку');
