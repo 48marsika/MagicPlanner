@@ -415,6 +415,11 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 .mandatory-table .mandatory-complete .text-input{color:#204b2c}
 .mandatory-table .mandatory-total{font-weight:700;white-space:nowrap}
 @media(max-width:520px){.navbtn{font-size:9px;padding:8px 1px}.mandatory-table th:first-child,.mandatory-table td:first-child{min-width:150px;width:150px}.mandatory-table th,.mandatory-table td{padding:9px 5px}.mandatory-add>.text-input{flex-basis:100%}}
+
+.monthly-goal-add{display:flex;align-items:center;gap:10px;margin-top:12px}
+.monthly-goal-add input{min-width:0;flex:1}
+.monthly-goal-add button{flex-shrink:0}
+@media(max-width:520px){.monthly-goal-add{flex-wrap:wrap}.monthly-goal-add input{flex-basis:100%}}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -442,13 +447,17 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
       </div>
       <div class="day-card monthly-goal-box" id="monthlyGoalBox">
         <div class="row-between"><h3>🎯 Цели на месяц</h3><span class="badge" id="monthlyGoalPeriod"></span></div>
-        <p class="small">Выбери до трёх целей из раздела «Цели». Изменения названий появятся здесь автоматически.</p>
+        <p class="small">Выбери до трёх целей из общего списка или добавь новую здесь. Изменения названий появятся автоматически.</p>
         <div class="monthly-goal-selects">
           <select id="monthlyGoalFirst" aria-label="Первая цель на месяц"></select>
           <select id="monthlyGoalSecond" aria-label="Вторая цель на месяц"></select>
           <select id="monthlyGoalThird" aria-label="Третья цель на месяц"></select>
         </div>
-        <p class="small" id="monthlyGoalHint"></p>
+        <form id="monthlyGoalAddForm" class="monthly-goal-add">
+          <input id="monthlyGoalNewText" class="text-input" placeholder="Новая цель на месяц…" aria-label="Новая цель на месяц" required maxlength="500">
+          <button class="btn" type="submit">+ Добавить цель</button>
+        </form>
+        <p class="small" id="monthlyGoalHint" aria-live="polite"></p>
       </div>
       <details class="inbox-panel day-card" open>
         <summary>📥 Входящие <span id="inboxCount"></span></summary>
@@ -792,9 +801,39 @@ function renderMonthlyFocus(){
   });
   document.getElementById('monthlyGoalHint').textContent=goals.length?
     'Выбор сохраняется отдельно для каждого месяца. ✓ — выполненная цель.':
-    'Сначала добавь цели во вкладке «Цели» — они появятся в этих списках.';
+    'Добавь первую цель в поле выше — она появится здесь и во вкладке «Цели».';
   refreshTaskGoalSelectors();
 }
+
+function addMonthlyFocusGoal(text){
+  const value=String(text||'').trim();
+  if(!value)return {ok:false,reason:'empty'};
+  ensureGoalIds();
+  if(!state.monthlyGoalChoices||typeof state.monthlyGoalChoices!=='object')state.monthlyGoalChoices={};
+  const key=monthlyFocusPeriod().key,stored=state.monthlyGoalChoices[key];
+  const selected=Array.from({length:3},(_,i)=>Array.isArray(stored)?stored[i]||'':'');
+  const slot=selected.findIndex(id=>!id||!state.yearGoals.some(goal=>goal.id===id));
+  if(slot<0)return {ok:false,reason:'full'};
+  const existing=state.yearGoals.find(goal=>String(goal.text||'').trim().toLocaleLowerCase('ru-RU')===value.toLocaleLowerCase('ru-RU'));
+  if(existing&&selected.includes(existing.id))return {ok:false,reason:'duplicate'};
+  const goal=existing||{id:crypto.randomUUID(),text:value,progress:0};
+  if(!existing)state.yearGoals.push(goal);
+  selected[slot]=goal.id;
+  state.monthlyGoalChoices[key]=selected;
+  return {ok:true};
+}
+document.getElementById('monthlyGoalAddForm').onsubmit=e=>{
+  e.preventDefault();
+  const input=document.getElementById('monthlyGoalNewText');
+  const result=addMonthlyFocusGoal(input.value);
+  if(!result.ok){
+    const messages={full:'Уже выбраны три цели. Освободи место, выбрав «Не выбрано» в одном из списков.',duplicate:'Эта цель уже выбрана на месяц.',empty:'Впиши название цели.'};
+    document.getElementById('monthlyGoalHint').textContent=messages[result.reason];
+    return;
+  }
+  save();input.value='';renderGoals();input.focus();toast('Цель добавлена на месяц');
+};
+
 function chooseMonthlyFocus(slot,value){
   if(!Number.isInteger(slot)||slot<0||slot>2)return;
   const period=monthlyFocusPeriod();
