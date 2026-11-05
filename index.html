@@ -396,7 +396,7 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 .recurring-row{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding:12px 0;gap:12px;overflow-wrap:anywhere}
 #recurringList{margin-top:14px}
 
-.tabbar{grid-template-columns:repeat(7,minmax(0,1fr))}
+.tabbar{grid-template-columns:repeat(6,minmax(0,1fr))}
 .mandatory-add{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:16px 0}
 .mandatory-add>.text-input{flex:1;min-width:170px}
 .mandatory-add label{display:flex;align-items:center;gap:8px;font-size:13px}
@@ -470,6 +470,14 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 .salary-chart-scroll{overflow-x:auto;margin-top:15px}.salary-chart-scroll svg{display:block;width:100%;min-width:620px;height:auto}
 #salaryMonthPicker{width:auto;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel-strong);color:var(--text)}
 @media(max-width:480px){.salary-add{flex-wrap:wrap}.salary-add input{flex-basis:100%}.salary-table{min-width:320px}.salary-table th,.salary-table td{padding:8px 5px}.salary-table td:nth-child(2){width:115px}.salary-table td:last-child,.salary-table th:last-child{width:40px}}
+
+.planner-toolbar{display:flex;justify-content:flex-end;margin-top:5px}
+.planner-toolbar .btn{background:var(--panel-strong);font-size:22px;min-width:46px;min-height:46px}
+#overviewPicker{width:auto;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel-strong);color:var(--text)}
+#overviewKpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+#treasury-expenses,#treasury-overview{padding-top:12px}
+@media(max-width:760px){#overviewKpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:400px){#overviewKpis{grid-template-columns:1fr}}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -481,6 +489,7 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 </head>
 <body data-theme="halloween" data-device="auto">
 <div class="app">
+  <div class="planner-toolbar"><button id="openSettings" class="btn ghost" aria-label="Открыть настройки" title="Настройки">⚙️</button></div>
   <header class="hero">
     <div class="month-hero-text">
     <h1 id="plannerTitle">Мой волшебный планер</h1>
@@ -560,31 +569,7 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
   <div class="scrollbox mandatory-scroll" tabindex="0" aria-label="Таблица обязательных дел на месяц"><table class="mandatory-table"><thead id="mandatoryHead"></thead><tbody id="mandatoryBody"></tbody></table></div>
   <p class="small" id="mandatorySummary"></p>
 </div>
-<div class="card budget-card">
-<div class="section-title"><div><h2>💳 Траты за месяц</h2><div class="sub">План, фактические расходы и остаток по категориям.</div></div></div>
-<div class="month-nav"><button id="budgetPrev" class="btn ghost" aria-label="Бюджет предыдущего месяца">←</button><strong id="budgetTitle"></strong><button id="budgetNext" class="btn ghost" aria-label="Бюджет следующего месяца">→</button><input id="budgetMonth" type="month" aria-label="Месяц бюджета"><button id="budgetToday" class="btn secondary">Текущий месяц</button></div>
-<p class="small">План можно менять для каждого месяца. Для внезапных трат и праздников план по умолчанию — 0 ₽: просто записывай расходы и пояснение. Факт в новом месяце начинается с нуля.</p>
-<div id="budgetKpis" class="budget-kpis" aria-live="polite"></div>
-<div class="scrollbox"><table class="budget-table"><thead><tr><th>Категория</th><th>План, ₽</th><th>Факт, ₽</th><th>Остаток, ₽</th></tr></thead><tbody id="budgetRows"></tbody></table></div>
-<div class="budget-chart-panel"><h3>План и факт по категориям</h3><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span><span class="budget-over-key">● Факт выше плана</span></div><div id="budgetCategoryChart" class="budget-chart-scroll"></div></div>
-<div class="budget-entry"><h3>Записать расход</h3><form id="budgetExpenseForm" class="budget-expense-form">
-<label>Дата<input id="budgetExpenseDate" type="date" required></label><label>Категория<select id="budgetExpenseCategory"></select></label>
-<label>Сумма, ₽<input id="budgetExpenseAmount" type="text" inputmode="decimal" placeholder="Например, 1250,50" required></label>
-<label>Комментарий<input id="budgetExpenseNote" type="text" maxlength="300" placeholder="Необязательно"></label>
-<button class="btn" type="submit">+ Записать</button></form><p class="small" id="budgetExpenseMessage" role="status"></p></div>
-<details class="budget-journal" open><summary>Расходы выбранного месяца <span id="budgetExpenseCount"></span></summary><div id="budgetExpenseList"></div></details>
-<div class="budget-chart-panel"><h3>План и факт по месяцам</h3><p class="small">Здесь показаны сохранённые месяцы, включая будущие. Нулевой факт означает, что расходы ещё не внесены.</p><div id="budgetHistoryChart" class="budget-chart-scroll"></div></div>
-<div class="budget-summary">
-<div class="row-between"><h3>📊 Сводка расходов</h3><label>Год <select id="budgetSummaryYear" aria-label="Год сводки расходов"></select></label></div>
-<p class="small">Сравниваются сохранённые месяцы выбранного года. Будущие месяцы отмечены отдельно; нулевой факт означает отсутствие записей. Остаток — план минус факт.</p>
-<div id="budgetSummaryKpis" class="budget-kpis"></div>
-<h4>Сравнение месяцев</h4><div class="scrollbox" tabindex="0" aria-label="Сравнение расходов по месяцам"><table class="budget-table budget-summary-table"><thead><tr><th>Месяц</th><th>План</th><th>Факт</th><th>Остаток</th><th>Потрачено от плана</th><th>Изменение факта</th></tr></thead><tbody id="budgetSummaryMonths"></tbody><tfoot id="budgetSummaryMonthsFoot"></tfoot></table></div>
-<p class="small">Изменение факта сравнивается с предыдущим календарным месяцем, только когда оба месяца завершены. Текущий месяц ещё неполный.</p>
-<div class="budget-chart-panel"><h3>Динамика плана и расходов</h3><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span></div><div id="budgetTrendChart" class="budget-chart-scroll"></div></div>
-<h4>Категории по месяцам</h4><div class="scrollbox" tabindex="0" aria-label="Сводка категорий по месяцам"><table class="budget-table budget-summary-table"><thead id="budgetSummaryCategoriesHead"></thead><tbody id="budgetSummaryCategories"></tbody><tfoot id="budgetSummaryCategoriesFoot"></tfoot></table></div>
-<div class="budget-chart-panel"><h3>План и факт по категориям за выбранные месяцы</h3><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span><span class="budget-over-key">● Перерасход</span></div><div id="budgetSummaryCategoryChart" class="budget-chart-scroll"></div></div>
-</div>
-</div>
+
 </section>
 <section id="goals" class="view">
     <div class="card">
@@ -604,11 +589,44 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
         <div><h2>💰 Казна</h2><div class="sub">Зарплата, обязательные платежи и мои копилки</div></div>
       </div>
       <div class="treasury-tabs">
-        <button class="btn" data-treasury-tab="salary">ЗП</button>
+        <button class="btn" data-treasury-tab="overview">Обзор</button>
+        <button class="btn secondary" data-treasury-tab="salary">ЗП</button>
+        <button class="btn secondary" data-treasury-tab="expenses">Расходы</button>
         <button class="btn secondary" data-treasury-tab="payments">Обязательные платежи</button>
         <button class="btn secondary" data-treasury-tab="funds">Мои копилки</button>
       </div>
-      <div id="treasury-salary">
+      <div id="treasury-overview" class="budget-card">
+<div class="month-nav"><button id="overviewPrev" class="btn ghost" aria-label="Предыдущий месяц обзора">←</button><strong id="overviewTitle"></strong><button id="overviewNext" class="btn ghost" aria-label="Следующий месяц обзора">→</button><input id="overviewPicker" type="month" aria-label="Месяц обзора"><button id="overviewToday" class="btn secondary">Текущий месяц</button></div>
+<div id="overviewKpis" class="budget-kpis"></div><p class="small" id="overviewNote"></p>
+<h3>Доход и фактические расходы по месяцам</h3><div class="budget-legend"><span class="budget-plan-key">● Доход</span><span class="budget-actual-key">● Расходы</span></div><div id="overviewChart" class="budget-chart-scroll"></div>
+<div class="budget-summary">
+<div class="row-between"><h3>📊 Сводка расходов</h3><label>Год <select id="budgetSummaryYear" aria-label="Год сводки расходов"></select></label></div>
+<p class="small">Сравниваются сохранённые месяцы выбранного года. Будущие месяцы отмечены отдельно; нулевой факт означает отсутствие записей. Остаток — план минус факт.</p>
+<div id="budgetSummaryKpis" class="budget-kpis"></div>
+<h4>Сравнение месяцев</h4><div class="scrollbox" tabindex="0" aria-label="Сравнение расходов по месяцам"><table class="budget-table budget-summary-table"><thead><tr><th>Месяц</th><th>План</th><th>Факт</th><th>Остаток</th><th>Потрачено от плана</th><th>Изменение факта</th></tr></thead><tbody id="budgetSummaryMonths"></tbody><tfoot id="budgetSummaryMonthsFoot"></tfoot></table></div>
+<p class="small">Изменение факта сравнивается с предыдущим календарным месяцем, только когда оба месяца завершены. Текущий месяц ещё неполный.</p>
+<div class="budget-chart-panel"><h3>Динамика плана и расходов</h3><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span></div><div id="budgetTrendChart" class="budget-chart-scroll"></div></div>
+<h4>Категории по месяцам</h4><div class="scrollbox" tabindex="0" aria-label="Сводка категорий по месяцам"><table class="budget-table budget-summary-table"><thead id="budgetSummaryCategoriesHead"></thead><tbody id="budgetSummaryCategories"></tbody><tfoot id="budgetSummaryCategoriesFoot"></tfoot></table></div>
+<div class="budget-chart-panel"><h3>План и факт по категориям за выбранные месяцы</h3><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span><span class="budget-over-key">● Перерасход</span></div><div id="budgetSummaryCategoryChart" class="budget-chart-scroll"></div></div>
+</div>
+</div>
+<div id="treasury-expenses" class="budget-card" style="display:none">
+<div class="section-title"><div><h2>💳 Траты за месяц</h2><div class="sub">План, фактические расходы и остаток по категориям.</div></div></div>
+<div class="month-nav"><button id="budgetPrev" class="btn ghost" aria-label="Бюджет предыдущего месяца">←</button><strong id="budgetTitle"></strong><button id="budgetNext" class="btn ghost" aria-label="Бюджет следующего месяца">→</button><input id="budgetMonth" type="month" aria-label="Месяц бюджета"><button id="budgetToday" class="btn secondary">Текущий месяц</button></div>
+<p class="small">План можно менять для каждого месяца. Для внезапных трат и праздников план по умолчанию — 0 ₽: просто записывай расходы и пояснение. Факт в новом месяце начинается с нуля.</p>
+<div id="budgetKpis" class="budget-kpis" aria-live="polite"></div>
+<div class="scrollbox"><table class="budget-table"><thead><tr><th>Категория</th><th>План, ₽</th><th>Факт, ₽</th><th>Остаток, ₽</th></tr></thead><tbody id="budgetRows"></tbody></table></div>
+<div class="budget-chart-panel"><h3>План и факт по категориям</h3><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span><span class="budget-over-key">● Факт выше плана</span></div><div id="budgetCategoryChart" class="budget-chart-scroll"></div></div>
+<div class="budget-entry"><h3>Записать расход</h3><form id="budgetExpenseForm" class="budget-expense-form">
+<label>Дата<input id="budgetExpenseDate" type="date" required></label><label>Категория<select id="budgetExpenseCategory"></select></label>
+<label>Сумма, ₽<input id="budgetExpenseAmount" type="text" inputmode="decimal" placeholder="Например, 1250,50" required></label>
+<label>Комментарий<input id="budgetExpenseNote" type="text" maxlength="300" placeholder="Необязательно"></label>
+<button class="btn" type="submit">+ Записать</button></form><p class="small" id="budgetExpenseMessage" role="status"></p></div>
+<details class="budget-journal" open><summary>Расходы выбранного месяца <span id="budgetExpenseCount"></span></summary><div id="budgetExpenseList"></div></details>
+<div class="budget-chart-panel"><h3>План и факт по месяцам</h3><p class="small">Здесь показаны сохранённые месяцы, включая будущие. Нулевой факт означает, что расходы ещё не внесены.</p><div id="budgetHistoryChart" class="budget-chart-scroll"></div></div>
+
+</div>
+<div id="treasury-salary" style="display:none">
 <div class="month-nav salary-month-nav"><button id="salaryPrev" class="btn ghost" aria-label="Предыдущий месяц зарплаты">←</button><strong id="salaryMonthTitle"></strong><button id="salaryNext" class="btn ghost" aria-label="Следующий месяц зарплаты">→</button><input id="salaryMonthPicker" type="month" aria-label="Месяц зарплаты"><button id="salaryToday" class="btn secondary">Текущий месяц</button></div>
 <p class="small">Впиши сумму дохода по каждому источнику за месяц. В следующем месяце список источников сохранится, суммы начнутся с чистого листа. История не меняется.</p>
 <div class="salary-total"><span>ЗП за месяц</span><strong id="salaryTotal" aria-live="polite"></strong><div class="small" id="salaryFilled"></div></div>
@@ -624,7 +642,7 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
         <div class="row-between payments-section-heading">
           <div>
             <h3 style="font-family:Georgia,serif;margin:0">Обязательные платежи</h3>
-            <div class="small">Открывается текущий месяц. Для других месяцев используй стрелки.</div>
+            <div class="small">Открывается текущий месяц. При отметке оплаты можно записать расход. Снятие галочки не удаляет уже записанный расход.</div>
           </div>
           <button class="btn secondary" id="addPayment">+ Платёж</button>
         </div>
@@ -744,8 +762,13 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
   <button class="navbtn" data-view="goals"><span>🎯</span><span>Цели</span></button>
   <button class="navbtn" data-view="treasury"><span>💰</span><span>Казна</span></button>
   <button class="navbtn" data-view="body"><span>🧍</span><span>Тело</span></button>
-  <button class="navbtn" data-view="settings"><span>⚙️</span><span>Настройки</span></button>
+
 </nav>
+<dialog id="paymentExpenseDialog" class="week-dialog"><form id="paymentExpenseForm">
+<div class="row-between"><h3>Записать оплату в расходы?</h3><button id="paymentExpenseClose" class="btn ghost" type="button" aria-label="Закрыть">×</button></div>
+<p id="paymentExpenseTitle"></p><p class="small">Отметка об оплате сохранена. Расход добавится только после нажатия «Записать расход». Если уже записывала его вручную, нажми «Уже записано / пропустить».</p>
+<div class="budget-expense-form"><label>Дата<input id="paymentExpenseDate" type="date" required></label><label>Категория<select id="paymentExpenseCategory"></select></label><label>Сумма, ₽<input id="paymentExpenseAmount" type="text" inputmode="decimal" required></label></div>
+<p class="small" id="paymentExpenseMessage" role="status"></p><div class="week-transfer-actions"><button id="paymentExpenseSkip" type="button" class="btn ghost">Уже записано / пропустить</button><button type="submit" class="btn">Записать расход</button></div></form></dialog>
 <div id="toast" class="toast">Сохранено</div><div id="undoBar" class="undo-bar" hidden><span id="undoMessage"></span><button id="undoDelete" class="btn secondary">Отменить удаление</button><button id="dismissUndo" class="icon-btn" aria-label="Закрыть">×</button></div>
 
 <script>
@@ -1328,7 +1351,7 @@ function renderPayments(){
       tr.querySelector('.check').setAttribute('aria-label',`Оплачено за ${monthNames[m]} ${y}: ${p.name}`);
       save();
     };
-    tr.querySelector('.check').onchange=e=>{p.checks[k]=e.target.checked;save();updatePaymentSummary()};
+    tr.querySelector('.check').onchange=e=>{p.checks[k]=e.target.checked;save();updatePaymentSummary();if(e.target.checked)offerPaymentExpense(p,paymentPeriod.y+'-'+String(paymentPeriod.m+1).padStart(2,'0'))};
     tr.querySelector('.del').onclick=()=>{deleteWithUndo(state.treasury.payments,ri,renderPayments,'Платёж удалён')};
     tb.appendChild(tr);
   });
@@ -1463,6 +1486,7 @@ function renderSalaryCharts(){
   const months=Object.keys(state.salaryMonths).sort().map(key=>({key,...salaryMonthTotals(state.salaryMonths[key])}));
   document.getElementById('salaryHistoryRows').innerHTML=months.map(month=>'<tr><th scope="row">'+mandatoryMonthTitle(month.key)+(month.key===current?' · текущий':month.key>current?' · будущий':'')+'</th><td>'+(month.filled?budgetMoney(month.total):'—')+'</td><td>'+month.filled+' / '+month.count+'</td></tr>').join('');
   document.getElementById('salaryHistoryChart').innerHTML=salaryHistorySvg(months);
+  renderTreasuryOverview();
 }
 function renderSalaryMonth(){
   const created=ensureSalaryMonth(salaryPeriod),record=state.salaryMonths[salaryPeriod];
@@ -1487,11 +1511,7 @@ function renderSalaryMonth(){
   renderSalaryCharts();
   if(created){localStorage.setItem(KEY,JSON.stringify(state));if(window.MagicPlannerCloud)save()}
 }
-function openTreasurySalary(){
-  salaryPeriod=monthlyFocusPeriod().key;renderSalaryMonth();
-  ['salary','payments','funds'].forEach(tab=>document.getElementById('treasury-'+tab).style.display=tab==='salary'?'block':'none');
-  document.querySelectorAll('[data-treasury-tab]').forEach(button=>button.className='btn '+(button.dataset.treasuryTab==='salary'?'':'secondary'));
-}
+function openTreasurySalary(){selectTreasuryPanel('salary')}
 document.getElementById('salaryAddForm').onsubmit=e=>{
   e.preventDefault();const input=document.getElementById('salaryNewName'),name=input.value.trim();if(!name)return;
   state.salaryMonths[salaryPeriod].sources.push({id:crypto.randomUUID(),name,amountCents:null});
@@ -1509,17 +1529,13 @@ setInterval(refreshSalaryCalendar,60000);window.addEventListener('focus',refresh
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshSalaryCalendar()});
 
 function renderTreasury(){
+  renderExpenseBudget();
   renderSalaryMonth();
   renderPayments();
   renderFunds();
+  renderTreasuryOverview();
 }
-document.querySelectorAll('[data-treasury-tab]').forEach(b=>b.onclick=()=>{
-  const t=b.dataset.treasuryTab;
-  if(t==='payments')resetPaymentToToday();
-  if(t==='salary'){salaryPeriod=monthlyFocusPeriod().key;renderSalaryMonth()}
-  ['salary','payments','funds'].forEach(x=>document.getElementById('treasury-'+x).style.display=x===t?'block':'none');
-  document.querySelectorAll('[data-treasury-tab]').forEach(z=>z.className='btn '+(z===b?'':'secondary'));
-});
+document.querySelectorAll('[data-treasury-tab]').forEach(button=>button.onclick=()=>selectTreasuryPanel(button.dataset.treasuryTab));
 
 /* BODY */
 function renderBody(){
@@ -1582,15 +1598,15 @@ document.getElementById('importFile').onchange=e=>{const f=e.target.files[0];if(
 document.getElementById('resetBtn').onclick=()=>{if(confirm('Удалить все данные планера?')){undoStack.length=0;updateUndoBar();state=clone(defaults);save();renderAll();toast('Данные очищены')}}
 
 /* NAV */
-document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{
-  if(b.dataset.view==='treasury')openTreasurySalary();
-  if(b.dataset.view==='mandatory')openCurrentMandatoryMonth();
-  document.querySelectorAll('.navbtn').forEach(x=>x.classList.remove('active'));b.classList.add('active');
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(b.dataset.view).classList.add('active');
+function openPlannerView(view){
+  if(view==='treasury')openTreasuryOverview();
+  if(view==='mandatory')openCurrentMandatoryMonth();
+  document.querySelectorAll('.navbtn').forEach(button=>button.classList.toggle('active',button.dataset.view===view));
+  document.querySelectorAll('.view').forEach(panel=>panel.classList.toggle('active',panel.id===view));
   window.scrollTo({top:0,behavior:'smooth'});
-});
-
-
+}
+document.querySelectorAll('.navbtn').forEach(button=>button.onclick=()=>openPlannerView(button.dataset.view));
+document.getElementById('openSettings').onclick=()=>openPlannerView('settings');
 
 window.MagicPlannerBridge = {
   getState:()=>clone(state),
@@ -1674,7 +1690,6 @@ function renderMandatoryMonth(){
     action.appendChild(remove);tr.appendChild(action);body.appendChild(tr);
   });
   updateMandatoryTotals();
-  renderExpenseBudget(mandatoryPeriod);
   if(created){localStorage.setItem(KEY,JSON.stringify(state));if(window.MagicPlannerCloud)save()}
 }
 document.getElementById('mandatoryAddForm').onsubmit=e=>{
@@ -1792,6 +1807,7 @@ function renderBudgetCharts(){
   const history=Object.keys(state.expenseBudgets).sort().map(key=>{const t=expenseBudgetTotals(state.expenseBudgets[key]);return {name:mandatoryMonthTitle(key),plan:t.plan,actual:t.actual}});
   document.getElementById('budgetHistoryChart').innerHTML=budgetSvgBars(history,'Сравнение бюджета по месяцам','план','факт');
   renderBudgetSummary();
+  renderTreasuryOverview();
 }
 function renderBudgetExpenses(){
   const list=document.getElementById('budgetExpenseList'),record=state.expenseBudgets[budgetPeriod];
@@ -1909,6 +1925,103 @@ function renderBudgetSummary(){
   document.getElementById('budgetSummaryCategoryChart').innerHTML=data.months.length?budgetSvgBars(data.categories,'Суммарный план и факт по категориям за '+budgetSummaryYear,'план','факт'):'<p class="small">Нет данных за выбранный год.</p>';
 }
 document.getElementById('budgetSummaryYear').onchange=e=>{budgetSummaryYear=e.target.value;renderBudgetSummary()};
+
+
+let overviewPeriod=monthlyFocusPeriod().key;
+let overviewCalendarMonth=overviewPeriod;
+const treasuryPanels=['overview','salary','expenses','payments','funds'];
+function selectTreasuryPanel(tab){
+  if(!treasuryPanels.includes(tab))return;
+  if(tab==='overview'){overviewPeriod=monthlyFocusPeriod().key;renderTreasuryOverview()}
+  if(tab==='salary'){salaryPeriod=monthlyFocusPeriod().key;renderSalaryMonth()}
+  if(tab==='expenses')renderExpenseBudget(monthlyFocusPeriod().key);
+  if(tab==='payments')resetPaymentToToday();
+  treasuryPanels.forEach(key=>document.getElementById('treasury-'+key).style.display=tab===key?'block':'none');
+  document.querySelectorAll('[data-treasury-tab]').forEach(button=>{
+    button.className='btn '+(button.dataset.treasuryTab===tab?'':'secondary');
+    button.setAttribute('aria-pressed',String(button.dataset.treasuryTab===tab));
+  });
+}
+function openTreasuryOverview(){selectTreasuryPanel('overview')}
+function refreshOverviewCalendar(){
+  const current=monthlyFocusPeriod().key;
+  if(current!==overviewCalendarMonth){if(overviewPeriod===overviewCalendarMonth)overviewPeriod=current;overviewCalendarMonth=current;renderTreasuryOverview()}
+}
+setInterval(refreshOverviewCalendar,60000);
+window.addEventListener('focus',refreshOverviewCalendar);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshOverviewCalendar()});
+
+function treasuryOverviewData(key){
+  const salary=state.salaryMonths?.[key],budget=state.expenseBudgets?.[key];
+  const income=salary?salaryMonthTotals(salary):{total:0,filled:0};
+  const expenses=budget?expenseBudgetTotals(budget):{plan:expenseBudgetCategories.reduce((sum,c)=>sum+c.planCents,0),actual:0};
+  return {income:income.total,incomeEntered:income.filled>0,plan:expenses.plan,actual:expenses.actual,balance:income.total-expenses.actual,hasBudget:!!budget};
+}
+function renderTreasuryOverview(){
+  const data=treasuryOverviewData(overviewPeriod);
+  document.getElementById('overviewTitle').textContent=mandatoryMonthTitle(overviewPeriod);
+  document.getElementById('overviewPicker').value=overviewPeriod;
+  document.getElementById('overviewToday').disabled=overviewPeriod===monthlyFocusPeriod().key;
+  const cards=[['Доход',data.incomeEntered?budgetMoney(data.income):'Не внесён'],['План расходов',budgetMoney(data.plan)],['Фактические расходы',budgetMoney(data.actual)],['Доход минус расходы',data.incomeEntered?budgetMoney(data.balance):'—']];
+  document.getElementById('overviewKpis').innerHTML=cards.map(([label,value],index)=>'<div class="budget-kpi'+(index===3&&data.incomeEntered&&data.balance<0?' budget-over-text':'')+'"><span>'+label+'</span><strong>'+value+'</strong></div>').join('');
+  document.getElementById('overviewNote').textContent='Разница учитывает внесённые доходы и расходы этого месяца. Это не баланс банковского счёта. '+(!data.hasBudget?'План показан по исходным нормам; его можно задать в «Расходах».':'');
+  const keys=[...new Set([...Object.keys(state.salaryMonths||{}),...Object.keys(state.expenseBudgets||{})])].sort();
+  const rows=keys.map(key=>{const d=treasuryOverviewData(key);return {name:mandatoryMonthTitle(key),plan:d.income,actual:d.actual}});
+  document.getElementById('overviewChart').innerHTML=rows.length?budgetSvgBars(rows,'Внесённые доходы и фактические расходы по месяцам','доход','расходы'):'<p class="small">Внеси доходы и расходы — здесь появится сравнение.</p>';
+}
+document.getElementById('overviewPrev').onclick=()=>{overviewPeriod=shiftMandatoryMonth(overviewPeriod,-1);renderTreasuryOverview()};
+document.getElementById('overviewNext').onclick=()=>{overviewPeriod=shiftMandatoryMonth(overviewPeriod,1);renderTreasuryOverview()};
+document.getElementById('overviewToday').onclick=()=>{overviewPeriod=monthlyFocusPeriod().key;renderTreasuryOverview()};
+document.getElementById('overviewPicker').onchange=e=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value)){overviewPeriod=e.target.value;renderTreasuryOverview()}};
+let pendingPaymentExpense=null;
+function paymentCategory(name){
+  const text=String(name||'').toLowerCase();
+  if(/налог/.test(text))return 'tax';
+  if(/нпф/.test(text))return 'npf';
+  if(/интернет/.test(text))return 'internet';
+  if(/коммун/.test(text))return 'utilities';
+  if(/chat|чат/.test(text))return 'chatgpt';
+  if(/\bll\b|^лл$/.test(text))return 'll';
+  return 'unexpected';
+}
+function paymentLinkedExpense(payment,key){
+  const link=payment.expenseLinks?.[key];
+  return !!link&&!!state.expenseBudgets?.[key]?.expenses.some(expense=>expense.id===link);
+}
+function offerPaymentExpense(payment,key){
+  if(paymentLinkedExpense(payment,key)){toast('Этот платёж уже есть в расходах');return;}
+  pendingPaymentExpense={payment,key};
+  const category=paymentCategory(payment.name);
+  const select=document.getElementById('paymentExpenseCategory');select.replaceChildren();
+  expenseBudgetCategories.forEach(c=>{const option=document.createElement('option');option.value=c.id;option.textContent=c.name;select.appendChild(option)});select.value=category;
+  const today=localPlannerDate(),date=document.getElementById('paymentExpenseDate');
+  date.value=today.slice(0,7)===key?today:key+'-01';date.min=key+'-01';date.max=shiftPlannerDate(shiftMandatoryMonth(key,1)+'-01',-1);
+  const plan=state.expenseBudgets?.[key]?.plans?.[category]??expenseBudgetCategories.find(c=>c.id===category).planCents;
+  document.getElementById('paymentExpenseAmount').value=plan?String(plan/100):'';
+  document.getElementById('paymentExpenseTitle').textContent=payment.name+' · '+mandatoryMonthTitle(key);
+  document.getElementById('paymentExpenseMessage').textContent='';
+  document.getElementById('paymentExpenseDialog').showModal();
+}
+function recordPaymentExpense(payment,key,entry){
+  if(paymentLinkedExpense(payment,key))return {ok:false,message:'Этот платёж уже записан в расходах.'};
+  const result=addBudgetExpense(key,entry);if(!result.ok)return result;
+  if(!payment.expenseLinks)payment.expenseLinks={};
+  const expense=state.expenseBudgets[key].expenses.at(-1);
+  payment.expenseLinks[key]=expense.id;
+  return {ok:true};
+}
+function closePaymentExpense(){document.getElementById('paymentExpenseDialog').close();pendingPaymentExpense=null}
+document.getElementById('paymentExpenseClose').onclick=closePaymentExpense;
+document.getElementById('paymentExpenseSkip').onclick=closePaymentExpense;
+document.getElementById('paymentExpenseDialog').addEventListener('cancel',()=>{pendingPaymentExpense=null});
+document.getElementById('paymentExpenseForm').onsubmit=e=>{
+  e.preventDefault();if(!pendingPaymentExpense)return;
+  const {payment,key}=pendingPaymentExpense;
+  if(!state.treasury.payments.includes(payment)){closePaymentExpense();toast('Платёж изменился. Открой его заново.');return;}
+  const result=recordPaymentExpense(payment,key,{date:document.getElementById('paymentExpenseDate').value,category:document.getElementById('paymentExpenseCategory').value,amount:document.getElementById('paymentExpenseAmount').value,note:'Обязательный платёж: '+payment.name});
+  if(!result.ok){document.getElementById('paymentExpenseMessage').textContent=result.message;return;}
+  save();closePaymentExpense();renderExpenseBudget();toast('Оплата добавлена в расходы');
+};
 
 function renderAll(){
   renderMandatoryMonth();
