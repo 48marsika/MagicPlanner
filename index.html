@@ -347,7 +347,7 @@ body:not([data-month-art]) .month-hero-text{padding:0}
 @media(max-width:620px){body[data-month-art] .hero{grid-template-columns:1fr}body[data-month-art] .month-art-image{grid-row:1;height:auto;min-height:0;aspect-ratio:3/2}.month-hero-text{padding:22px 18px}}
 
 
-body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),body[data-month-art="february"] .btn:not(.secondary):not(.ghost):not(.danger),body[data-month-art="october"] .btn:not(.secondary):not(.ghost):not(.danger){color:#211a24}
+body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),body[data-month-art="february"] .btn:not(.secondary):not(.ghost):not(.danger),body[data-month-art="october"] .btn:not(.secondary):not(.ghost):not(.danger){color:var(--on-accent)}
 
 .monthly-goal-box{margin-bottom:16px}
 .monthly-goal-box h3{font-family:Georgia,serif;font-weight:500;font-size:24px;margin:0}
@@ -411,8 +411,8 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 .mandatory-quota{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-top:5px}
 .mandatory-table input[type=checkbox]{width:26px;height:26px;accent-color:var(--accent);cursor:pointer}
 .mandatory-table .mandatory-inactive{color:var(--muted);opacity:.65}
-.mandatory-table .mandatory-complete td{background:#e0f0df;color:#204b2c}
-.mandatory-table .mandatory-complete .text-input{color:#204b2c}
+.mandatory-table .mandatory-complete td{background:var(--month-soft,var(--panel-strong));color:var(--text);font-weight:700}
+.mandatory-table .mandatory-complete .text-input{color:var(--text)}
 .mandatory-table .mandatory-total{font-weight:700;white-space:nowrap}
 @media(max-width:520px){.navbtn{font-size:9px;padding:8px 1px}.mandatory-table th:first-child,.mandatory-table td:first-child{min-width:150px;width:150px}.mandatory-table th,.mandatory-table td{padding:9px 5px}.mandatory-add>.text-input{flex-basis:100%}}
 
@@ -421,12 +421,12 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 .monthly-goal-add button{flex-shrink:0}
 @media(max-width:520px){.monthly-goal-add{flex-wrap:wrap}.monthly-goal-add input{flex-basis:100%}}
 
-.budget-card{--budget-plan:#8291b2;--budget-actual:#328579;--budget-over:#bc5059}
+.budget-card{--budget-plan:var(--line);--budget-actual:var(--accent);--budget-over:var(--text)}
 .budget-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}
 .budget-kpi{padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--panel-strong)}
 .budget-kpi span{display:block;font-size:13px;color:var(--muted)}
 .budget-kpi strong{display:block;font-family:Georgia,serif;font-size:clamp(23px,3vw,33px);margin-top:5px}
-.budget-over-text{color:#bd394c!important}
+.budget-over-text{color:var(--text)!important;font-weight:750;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:4px}
 .budget-table{border-collapse:collapse;width:100%;min-width:550px}
 .budget-table th,.budget-table td{text-align:right;padding:12px;border-bottom:1px solid var(--line);white-space:nowrap}
 .budget-table th:first-child{text-align:left}
@@ -463,7 +463,7 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 .salary-table td:last-child,.salary-table th:last-child{width:65px;text-align:center}
 .salary-table input{width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--panel-strong);color:var(--text)}
 .salary-table td:nth-child(2){width:160px}.salary-table td:nth-child(2) input{text-align:right}
-.salary-table input[aria-invalid=true]{border-color:#bd394c}
+.salary-table input[aria-invalid=true]{border-color:var(--accent);border-style:dashed}
 .salary-add{display:flex;gap:10px;margin-top:16px}.salary-add input{min-width:0;flex:1}
 .salary-chart-panel{border-top:1px solid var(--line);padding-top:15px;margin-top:22px}
 .salary-chart-panel h3{font-family:Georgia,serif;font-size:25px;font-weight:500}
@@ -484,6 +484,51 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 
 .budget-dynamics>summary{cursor:pointer;font-family:Georgia,serif;font-weight:500;font-size:25px;padding:8px 0}
 .budget-dynamics>summary:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
+
+/* Rounded surfaces and theme-derived semantic colours. */
+body:not([data-month-art])[data-theme="autumn"]{--text:#4c402d;--muted:#716044;--panel:#fff7e8;--panel-strong:#fff7e8;--line:#c9b48f;--accent:#936123;--accent-dark:#936123;--month-soft:#efdfc3;--month-hero:#f0e4ce;--month-hero-fg:#514029;--nav:#f0e4ce;--navText:#514029;}
+body:not([data-month-art])[data-theme="halloween"]{--text:#f8eafa;--muted:#d6c2df;--panel:#2b1539;--panel-strong:#2b1539;--line:#9067a2;--accent:#f4b37b;--accent-dark:#f4b37b;--month-soft:#452356;--month-hero:#241033;--month-hero-fg:#fff0dc;--nav:#241033;--navText:#fff0dc;}
+body:not([data-month-art])[data-theme="christmas"]{--text:#30282a;--muted:#685b5d;--panel:#fff8ed;--panel-strong:#fff8ed;--line:#cfbaa2;--accent:#a72b29;--accent-dark:#a72b29;--month-soft:#f0e3d1;--month-hero:#15213a;--month-hero-fg:#fff4dc;--nav:#15213a;--navText:#fff4dc;}
+body:not([data-month-art])[data-theme="spring"]{--text:#493a54;--muted:#73617c;--panel:#fff9ff;--panel-strong:#fff9ff;--line:#d0bad6;--accent:#79508d;--accent-dark:#79508d;--month-soft:#eee1f3;--month-hero:#f4e8f2;--month-hero-fg:#533a60;--nav:#f4e8f2;--navText:#533a60;}
+body:not([data-month-art])[data-theme="summer"]{--text:#174c52;--muted:#45696e;--panel:#f2fffc;--panel-strong:#f2fffc;--line:#99c8c5;--accent:#166c78;--accent-dark:#166c78;--month-soft:#d7f0ee;--month-hero:#dcf4ee;--month-hero-fg:#1d5055;--nav:#dcf4ee;--navText:#1d5055;}
+body:not([data-month-art])[data-theme="dark"]{--text:#f6ecda;--muted:#c4cedd;--panel:#172941;--panel-strong:#172941;--line:#5d718f;--accent:#f3cd82;--accent-dark:#f3cd82;--month-soft:#293e59;--month-hero:#0e203c;--month-hero-fg:#fff2d1;--nav:#0e203c;--navText:#fff2d1;}
+
+body{--on-accent:var(--panel-strong);--theme-soft:var(--month-soft,var(--panel-strong));--theme-hero:var(--month-hero,var(--nav));--theme-hero-fg:var(--month-hero-fg,var(--navText))}
+body[data-month-art="january"],body[data-month-art="february"],body[data-month-art="october"],body:not([data-month-art])[data-theme="dark"],body:not([data-month-art])[data-theme="halloween"]{--on-accent:var(--month-hero)}
+body .btn:not(.secondary):not(.ghost),body .auth-card button{color:var(--on-accent);background:var(--accent-dark)}
+body .btn.danger{background:var(--text);color:var(--panel-strong)}
+body :is(.card,.day-card,.setting,.kpi,.fund-card,.category-card,.habit-summary-card,.budget-kpi,.salary-total,.monthly-goal-box,.week-history-entry,.transaction-row){border-radius:22px;background:var(--panel);border-color:var(--line)}
+body :is(button,input:not([type=checkbox]):not([type=range]),select,textarea){border-radius:14px}
+body :is(.scrollbox,.payments-month-wrap){border-radius:20px;border-color:var(--line)}
+body :is(.budget-table,.salary-table,.body-table,.habit-today-table,.payments-month-table,.mandatory-table,.sticky-table){border-collapse:separate;border-spacing:0;border-radius:18px}
+body table tr:first-child>th:first-child{border-top-left-radius:18px}
+body table tr:first-child>th:last-child{border-top-right-radius:18px}
+body table tbody tr:last-child>td:first-child,body table tbody tr:last-child>th:first-child{border-bottom-left-radius:18px}
+body table tbody tr:last-child>td:last-child{border-bottom-right-radius:18px}
+body :is(.budget-chart-panel,.salary-chart-panel){border:1px solid var(--line);border-radius:22px;padding:18px;background:var(--panel-strong)}
+body :is(.budget-chart-scroll,.salary-chart-scroll){border-radius:16px}
+body svg{border-radius:16px}
+body .tabbar{border-radius:24px 24px 0 0;background:var(--nav);border-color:var(--line)}
+body .navbtn.active{background:var(--theme-soft);color:var(--text)}
+body :is(.btn.secondary,.theme-chip,.device-btn,.badge){background:var(--theme-soft);color:var(--text);border-color:var(--line)}
+body :is(.auth-card,.week-dialog,.undo-bar){border-radius:26px;background:var(--panel-strong);color:var(--text);border-color:var(--line)}
+body .auth-overlay{background:var(--theme-hero)}
+body :is(.auth-card p,.auth-card label,.cloud-account .email){color:var(--muted)}
+body .auth-card input{background:var(--panel);color:var(--text);border-color:var(--line)}
+body :is(.auth-error,.amount.expense,.amount.income){color:var(--accent);font-weight:700}
+body .cloud-account{border-color:var(--line)}
+body .cloud-account button{background:var(--theme-soft);color:var(--text)}
+body .cloud-status,body .cloud-status[data-state]{background:var(--theme-hero);color:var(--theme-hero-fg);border-color:var(--line)}
+body .cloud-status[data-state="error"]{border:2px dashed var(--accent);font-weight:700}
+body .cloud-status[data-state="sync"]{border:2px solid var(--accent)}
+body .toast{background:var(--theme-hero);color:var(--theme-hero-fg)}
+body :is(.progress,.habit-metric-track){background:var(--theme-soft)}
+body :is(.progress>span,.habit-metric-track>span){background:var(--accent)}
+body .fund-img,body .fund-img.placeholder{background:var(--theme-soft);border-color:var(--line)}
+body .body-table input:focus{background:var(--panel-strong);border-color:var(--accent)}
+body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
+@media(max-width:520px){body :is(.budget-chart-panel,.salary-chart-panel){padding:12px;border-radius:18px}}
+
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -1478,10 +1523,10 @@ function salaryHistorySvg(months){
   const x=m=>points.length===1?(width+left-right)/2:left+(serial(m.key)-first)/span*(width-left-right);
   const y=m=>height-bottom-m.total/max*(height-top-bottom);
   let svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+width+' '+height+'" role="img" aria-label="Доход по месяцам"><title>История зарплаты по месяцам с внесёнными суммами</title>';
-  for(let i=0;i<=4;i++){const yy=height-bottom-i/4*(height-top-bottom);svg+='<line x1="'+left+'" x2="'+(width-right)+'" y1="'+yy+'" y2="'+yy+'" stroke="currentColor" opacity=".15"/><text x="'+(left-9)+'" y="'+(yy+4)+'" text-anchor="end" fill="currentColor" font-size="11">'+esc(budgetMoney(Math.round(max*i/4)))+'</text>'}
+  for(let i=0;i<=4;i++){const yy=height-bottom-i/4*(height-top-bottom);svg+='<line stroke-linecap="round" stroke-linejoin="round" x1="'+left+'" x2="'+(width-right)+'" y1="'+yy+'" y2="'+yy+'" stroke="currentColor" opacity=".15"/><text x="'+(left-9)+'" y="'+(yy+4)+'" text-anchor="end" fill="currentColor" font-size="11">'+esc(budgetMoney(Math.round(max*i/4)))+'</text>'}
   points.forEach((month,index)=>{
     const previous=points[index-1];
-    if(previous&&serial(month.key)-serial(previous.key)===1)svg+='<line x1="'+x(previous)+'" y1="'+y(previous)+'" x2="'+x(month)+'" y2="'+y(month)+'" stroke="var(--accent)" stroke-width="3"/>';
+    if(previous&&serial(month.key)-serial(previous.key)===1)svg+='<line stroke-linecap="round" stroke-linejoin="round" x1="'+x(previous)+'" y1="'+y(previous)+'" x2="'+x(month)+'" y2="'+y(month)+'" stroke="var(--accent)" stroke-width="3"/>';
     svg+='<circle cx="'+x(month)+'" cy="'+y(month)+'" r="5" fill="var(--accent)"><title>'+esc(mandatoryMonthTitle(month.key)+': '+budgetMoney(month.total))+'</title></circle><text x="'+x(month)+'" y="'+(height-bottom+25)+'" text-anchor="end" transform="rotate(-35 '+x(month)+' '+(height-bottom+25)+')" fill="currentColor" font-size="12">'+esc(mandatoryMonthTitle(month.key))+'</text>';
   });return svg+'</svg>';
 }
@@ -1794,7 +1839,7 @@ function budgetSvgBars(rows,title,planLabel,actualLabel){
   const max=Math.max(1,...rows.flatMap(r=>[r.plan,r.actual]));
   const scale=value=>Math.max(0,value)/max*plot;
   let body='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+width+' '+height+'" role="img" aria-label="'+esc(title)+'"><title>'+esc(title)+'</title>';
-  body+='<line x1="'+left+'" x2="'+left+'" y1="15" y2="'+(height-25)+'" stroke="currentColor" opacity=".25"/>';
+  body+='<line stroke-linecap="round" stroke-linejoin="round" x1="'+left+'" x2="'+left+'" y1="15" y2="'+(height-25)+'" stroke="currentColor" opacity=".25"/>';
   rows.forEach((r,i)=>{
     const y=i*69+23;
     const accessible=r.name+': '+planLabel+' '+budgetMoney(r.plan)+', '+actualLabel+' '+budgetMoney(r.actual);
@@ -1895,13 +1940,13 @@ function budgetTrendSvg(months){
   let svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+width+' '+height+'" role="img" aria-label="Динамика плана и фактических расходов"><title>План и факт по сохранённым месяцам</title>';
   for(let i=0;i<=4;i++){
     const value=max*i/4,yy=y(value);
-    svg+='<line x1="'+left+'" x2="'+(width-right)+'" y1="'+yy+'" y2="'+yy+'" stroke="currentColor" opacity=".12"/><text x="'+(left-10)+'" y="'+(yy+4)+'" text-anchor="end" fill="currentColor" font-size="11">'+esc(budgetMoney(Math.round(value)))+'</text>';
+    svg+='<line stroke-linecap="round" stroke-linejoin="round" x1="'+left+'" x2="'+(width-right)+'" y1="'+yy+'" y2="'+yy+'" stroke="currentColor" opacity=".12"/><text x="'+(left-10)+'" y="'+(yy+4)+'" text-anchor="end" fill="currentColor" font-size="11">'+esc(budgetMoney(Math.round(value)))+'</text>';
   }
   for(const [field,color] of [['plan','var(--budget-plan)'],['actual','var(--budget-actual)']]){
     // Leave gaps when a calendar month has no saved record.
     let previous=null;
     months.forEach(month=>{
-      if(previous&&Number(month.key.slice(5))-Number(previous.key.slice(5))===1)svg+='<line x1="'+x(previous)+'" y1="'+y(previous[field])+'" x2="'+x(month)+'" y2="'+y(month[field])+'" stroke="'+color+'" stroke-width="3"/>';
+      if(previous&&Number(month.key.slice(5))-Number(previous.key.slice(5))===1)svg+='<line stroke-linecap="round" stroke-linejoin="round" x1="'+x(previous)+'" y1="'+y(previous[field])+'" x2="'+x(month)+'" y2="'+y(month[field])+'" stroke="'+color+'" stroke-width="3"/>';
       svg+='<circle cx="'+x(month)+'" cy="'+y(month[field])+'" r="5" fill="'+color+'"><title>'+esc(mandatoryMonthTitle(month.key)+': '+(field==='plan'?'план ':'факт ')+budgetMoney(month[field]))+'</title></circle>';
       previous=month;
     });
