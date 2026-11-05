@@ -357,6 +357,22 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 .monthly-goal-selects select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:620px){.monthly-goal-selects{grid-template-columns:1fr}}
 
+
+.week-history{margin-top:22px;border-top:1px solid var(--line);padding-top:16px}
+.week-history summary{cursor:pointer;line-height:1.6}
+.week-history-entry{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+.week-history-entry h4{margin:14px 0 5px}
+.week-history-entry ul{margin:0;padding-left:22px;overflow-wrap:anywhere}
+.archived-done{opacity:.7;text-decoration:line-through}
+.week-dialog{width:min(700px,calc(100% - 24px));max-height:85dvh;overflow:auto;border:1px solid var(--line);border-radius:22px;padding:22px;background:var(--panel-strong);color:var(--text)}
+.week-dialog::backdrop{background:#0008}
+.week-dialog h3{margin:0}
+.week-transfer-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin:16px 0}
+.week-transfer-row{display:grid;grid-template-columns:1fr 160px;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.week-transfer-row label{display:flex;gap:10px;align-items:center;overflow-wrap:anywhere;min-width:0}
+.week-transfer-row input{width:22px;height:22px;accent-color:var(--accent);flex-shrink:0}
+.week-transfer-row select{min-width:0;width:100%;padding:9px;border:1px solid var(--line);border-radius:10px;background:var(--panel-strong);color:var(--text)}
+@media(max-width:480px){.week-transfer-row{grid-template-columns:1fr}.week-dialog{padding:16px}}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -379,7 +395,7 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
   <section id="week" class="view active">
     <div class="card">
       <div class="section-title">
-        <div><h2>📅 Неделя</h2><div class="sub">Вся неделя перед глазами</div></div>
+        <div><h2>📅 Неделя</h2><div class="sub" id="weekPeriodLabel">Вся неделя перед глазами</div></div>
         <button class="btn" id="clearWeekBtn">Новая неделя</button>
       </div>
       <div class="day-card monthly-goal-box" id="monthlyGoalBox">
@@ -392,6 +408,17 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
         <p class="small" id="monthlyGoalHint"></p>
       </div>
       <div id="weekGrid" class="grid-week"></div>
+      <details class="week-history"><summary>📚 История недель <span id="weekHistoryCount"></span></summary><div id="weekHistoryList"></div></details>
+      <dialog id="newWeekDialog" class="week-dialog">
+        <form method="dialog"><div class="row-between"><h3>Новая неделя</h3><button class="btn ghost" value="cancel" aria-label="Закрыть">×</button></div>
+          <p id="newWeekDescription" class="small"></p>
+          <p>Выбери незавершённые задачи для переноса и день для каждой.</p>
+          <div class="week-transfer-actions"><button type="button" class="btn secondary" id="transferAll">Выбрать все</button><button type="button" class="btn ghost" id="transferNone">Снять выбор</button></div>
+          <div id="weekTransferList"></div>
+          <p class="small">Текущая неделя целиком останется в истории, включая выполненные задачи.</p>
+          <div class="week-transfer-actions"><button class="btn ghost" value="cancel">Отмена</button><button type="button" class="btn" id="confirmNewWeek">Начать новую неделю</button></div>
+        </form>
+      </dialog>
     </div>
   </section>
 
@@ -587,6 +614,8 @@ const defaults={
   yearGoals:[],
   monthGoals:{},
   monthlyGoalChoices:{},
+  weekStart:null,
+  weekHistory:[],
   treasury:{
     selectedYear:2026,selectedMonth:8,
     months:{},
@@ -720,7 +749,101 @@ setInterval(refreshMonthlyFocus,60000);
 window.addEventListener('focus',refreshMonthlyFocus);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshMonthlyFocus()});
 
+
+/* Dated weeks are archived before a new week is created. */
+function localPlannerDate(){
+  return new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Moscow',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+}
+function shiftPlannerDate(key,amount){
+  const d=new Date(key+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+amount);return d.toISOString().slice(0,10);
+}
+function mondayForDate(key){
+  const day=new Date(key+'T12:00:00Z').getUTCDay();
+  return shiftPlannerDate(key,-((day+6)%7));
+}
+function ensureWeekMetadata(){
+  let changed=false;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(state.weekStart||'')){state.weekStart=mondayForDate(localPlannerDate());changed=true;}
+  if(!Array.isArray(state.weekHistory)){state.weekHistory=[];changed=true;}
+  if(changed)localStorage.setItem(KEY,JSON.stringify(state));
+}
+function weekRangeLabel(start){
+  const fmt=key=>new Intl.DateTimeFormat('ru-RU',{timeZone:'UTC',day:'numeric',month:'long',year:'numeric'}).format(new Date(key+'T12:00:00Z'));
+  return fmt(start)+' — '+fmt(shiftPlannerDate(start,6));
+}
+function pendingWeekTasks(week){
+  return days.flatMap(day=>(week[day]||[]).map((task,index)=>({day,index,task}))).filter(item=>!item.task.done&&String(item.task.text||'').trim());
+}
+function buildNextWeek(week,choices){
+  const next=Object.fromEntries(days.map(day=>[day,[]]));
+  for(const choice of choices){
+    const task=(week[choice.day]||[])[choice.index];
+    if(task&&!task.done&&String(task.text||'').trim()&&days.includes(choice.target)){
+      next[choice.target].push({...clone(task),done:false});
+    }
+  }
+  days.forEach(day=>{while(next[day].length<5)next[day].push({text:'',done:false})});
+  return next;
+}
+function nextWeekStart(){
+  const following=shiftPlannerDate(state.weekStart,7),current=mondayForDate(localPlannerDate());
+  return following>current?following:current;
+}
+function renderWeekHistory(){
+  const list=document.getElementById('weekHistoryList');list.replaceChildren();
+  document.getElementById('weekHistoryCount').textContent='('+state.weekHistory.length+')';
+  if(!state.weekHistory.length){list.textContent='Здесь появятся недели после нажатия «Новая неделя».';return;}
+  state.weekHistory.slice().reverse().forEach(entry=>{
+    const details=document.createElement('details');details.className='week-history-entry';
+    const summary=document.createElement('summary');
+    const tasks=days.flatMap(day=>entry.tasks[day]||[]).filter(t=>String(t.text||'').trim());
+    summary.textContent=weekRangeLabel(entry.start)+' · выполнено '+tasks.filter(t=>t.done).length+' из '+tasks.length;
+    details.appendChild(summary);
+    days.forEach(day=>{
+      const items=(entry.tasks[day]||[]).filter(t=>String(t.text||'').trim());if(!items.length)return;
+      const title=document.createElement('h4');title.textContent=day;details.appendChild(title);
+      const ul=document.createElement('ul');
+      items.forEach(task=>{const li=document.createElement('li');li.textContent=(task.done?'✓ ':'○ ')+task.text;if(task.done)li.className='archived-done';ul.appendChild(li)});
+      details.appendChild(ul);
+    });
+    if(!tasks.length){const p=document.createElement('p');p.textContent='В этой неделе не было записанных задач.';details.appendChild(p)}
+    list.appendChild(details);
+  });
+}
+let transferWeekStart=null;
+function openNewWeek(){
+  ensureWeekMetadata();transferWeekStart=state.weekStart;
+  document.getElementById('newWeekDescription').textContent='Новая неделя: '+weekRangeLabel(nextWeekStart());
+  const list=document.getElementById('weekTransferList');list.replaceChildren();
+  const pending=pendingWeekTasks(state.week);
+  if(!pending.length)list.textContent='Незавершённых задач нет. Можно начать с чистой недели.';
+  pending.forEach(({day,index,task})=>{
+    const row=document.createElement('div');row.className='week-transfer-row';row.dataset.day=day;row.dataset.index=index;
+    const label=document.createElement('label'),check=document.createElement('input');check.type='checkbox';check.checked=true;
+    const span=document.createElement('span');span.textContent=task.text;label.append(check,span);
+    const select=document.createElement('select');select.setAttribute('aria-label','День для задачи: '+task.text);
+    days.forEach(d=>{const option=document.createElement('option');option.value=d;option.textContent=d;select.appendChild(option)});select.value=day;
+    row.append(label,select);list.appendChild(row);
+  });
+  document.getElementById('newWeekDialog').showModal();
+}
+document.getElementById('transferAll').onclick=()=>document.querySelectorAll('#weekTransferList input[type=checkbox]').forEach(c=>c.checked=true);
+document.getElementById('transferNone').onclick=()=>document.querySelectorAll('#weekTransferList input[type=checkbox]').forEach(c=>c.checked=false);
+document.getElementById('confirmNewWeek').onclick=()=>{
+  if(state.weekStart!==transferWeekStart){
+    document.getElementById('newWeekDialog').close();toast('Неделя изменилась. Открой перенос заново.');return;
+  }
+  const choices=Array.from(document.querySelectorAll('.week-transfer-row')).filter(row=>row.querySelector('input').checked).map(row=>({day:row.dataset.day,index:Number(row.dataset.index),target:row.querySelector('select').value}));
+  const next=buildNextWeek(state.week,choices),start=nextWeekStart();
+  state.weekHistory.push({start:state.weekStart,archivedAt:new Date().toISOString(),tasks:clone(state.week)});
+  state.week=next;state.weekStart=start;
+  save();document.getElementById('newWeekDialog').close();renderWeek();toast('Прошедшая неделя сохранена в истории');
+};
+
 function renderWeek(){
+  ensureWeekMetadata();
+  document.getElementById('weekPeriodLabel').textContent=weekRangeLabel(state.weekStart);
+  renderWeekHistory();
   renderMonthlyFocus();
   const g=document.getElementById('weekGrid');g.innerHTML='';
   days.forEach(day=>{
@@ -739,7 +862,7 @@ function renderWeek(){
     g.appendChild(c);
   });
 }
-document.getElementById('clearWeekBtn').onclick=()=>{if(confirm('Очистить задачи текущей недели?')){days.forEach(d=>state.week[d]=Array.from({length:5},()=>({text:'',done:false})));save();renderWeek()}}
+document.getElementById('clearWeekBtn').onclick=openNewWeek;
 
 /* HABITS - today, month and year progress */
 function daysInMonth(y,m){return new Date(y,m+1,0).getDate()}
