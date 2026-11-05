@@ -454,6 +454,22 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 .budget-summary-table th:first-child{position:sticky;left:0;z-index:1;background:var(--panel-strong)}
 .budget-summary-table{min-width:750px}
 .budget-summary .budget-chart-scroll svg{min-width:720px}
+
+.salary-total{padding:20px;margin:16px 0;border:1px solid var(--line);border-radius:18px;background:var(--panel-strong)}
+.salary-total>span{font-size:13px;color:var(--muted)}.salary-total>strong{display:block;font-family:Georgia,serif;font-size:38px;margin:6px 0}
+.salary-table{width:100%;border-collapse:collapse;min-width:400px}
+.salary-table th,.salary-table td{padding:11px;border-bottom:1px solid var(--line);text-align:left}
+.salary-table th:nth-child(2),.salary-table td:nth-child(2){text-align:right}
+.salary-table td:last-child,.salary-table th:last-child{width:65px;text-align:center}
+.salary-table input{width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--panel-strong);color:var(--text)}
+.salary-table td:nth-child(2){width:160px}.salary-table td:nth-child(2) input{text-align:right}
+.salary-table input[aria-invalid=true]{border-color:#bd394c}
+.salary-add{display:flex;gap:10px;margin-top:16px}.salary-add input{min-width:0;flex:1}
+.salary-chart-panel{border-top:1px solid var(--line);padding-top:15px;margin-top:22px}
+.salary-chart-panel h3{font-family:Georgia,serif;font-size:25px;font-weight:500}
+.salary-chart-scroll{overflow-x:auto;margin-top:15px}.salary-chart-scroll svg{display:block;width:100%;min-width:620px;height:auto}
+#salaryMonthPicker{width:auto;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel-strong);color:var(--text)}
+@media(max-width:480px){.salary-add{flex-wrap:wrap}.salary-add input{flex-basis:100%}.salary-table{min-width:320px}.salary-table th,.salary-table td{padding:8px 5px}.salary-table td:nth-child(2){width:115px}.salary-table td:last-child,.salary-table th:last-child{width:40px}}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -585,13 +601,26 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
   <section id="treasury" class="view">
     <div class="card">
       <div class="section-title">
-        <div><h2>💰 Казна</h2><div class="sub">Обязательные платежи и мои копилки</div></div>
+        <div><h2>💰 Казна</h2><div class="sub">Зарплата, обязательные платежи и мои копилки</div></div>
       </div>
       <div class="treasury-tabs">
-        <button class="btn" data-treasury-tab="payments">Обязательные платежи</button>
+        <button class="btn" data-treasury-tab="salary">ЗП</button>
+        <button class="btn secondary" data-treasury-tab="payments">Обязательные платежи</button>
         <button class="btn secondary" data-treasury-tab="funds">Мои копилки</button>
       </div>
-      <div id="treasury-payments">
+      <div id="treasury-salary">
+<div class="month-nav salary-month-nav"><button id="salaryPrev" class="btn ghost" aria-label="Предыдущий месяц зарплаты">←</button><strong id="salaryMonthTitle"></strong><button id="salaryNext" class="btn ghost" aria-label="Следующий месяц зарплаты">→</button><input id="salaryMonthPicker" type="month" aria-label="Месяц зарплаты"><button id="salaryToday" class="btn secondary">Текущий месяц</button></div>
+<p class="small">Впиши сумму дохода по каждому источнику за месяц. В следующем месяце список источников сохранится, суммы начнутся с чистого листа. История не меняется.</p>
+<div class="salary-total"><span>ЗП за месяц</span><strong id="salaryTotal" aria-live="polite"></strong><div class="small" id="salaryFilled"></div></div>
+<div class="scrollbox"><table class="salary-table"><thead><tr><th>Источник</th><th>Сумма, ₽</th><th>Удалить</th></tr></thead><tbody id="salaryRows"></tbody></table></div>
+<form id="salaryAddForm" class="salary-add"><input id="salaryNewName" class="text-input" placeholder="Новый источник дохода…" aria-label="Новый источник дохода" maxlength="200" required><button type="submit" class="btn secondary">+ Источник</button></form>
+<p id="salaryMessage" class="small" role="status"></p>
+<div class="salary-chart-panel"><h3>Доход по источникам</h3><div id="salarySourcesChart" class="salary-chart-scroll"></div></div>
+<div class="salary-chart-panel"><h3>История зарплаты по месяцам</h3><p class="small">Текущий месяц ещё неполный. Прочерк означает, что суммы пока не внесены. Для изменения месяца используй стрелки или выбор месяца сверху.</p>
+<div class="scrollbox"><table class="salary-table salary-history-table"><thead><tr><th>Месяц</th><th>Доход</th><th>Заполнено источников</th></tr></thead><tbody id="salaryHistoryRows"></tbody></table></div>
+<div id="salaryHistoryChart" class="salary-chart-scroll"></div></div>
+</div>
+<div id="treasury-payments" style="display:none">
         <div class="row-between payments-section-heading">
           <div>
             <h3 style="font-family:Georgia,serif;margin:0">Обязательные платежи</h3>
@@ -748,6 +777,7 @@ const defaults={
   recurringTasks:[],
   mandatoryMonths:{},
   expenseBudgets:{},
+  salaryMonths:{},
   treasury:{
     selectedYear:2026,selectedMonth:8,
     months:{},
@@ -1377,14 +1407,117 @@ function renderFunds(){
 }
 document.getElementById('addFund').onclick=()=>{state.treasury.funds.push({name:'Новая копилка',goal:'',current:0,target:0,image:''});save();renderFunds();toast('Копилка добавлена')}
 
+
+/* A month owns its source names and sums; later months inherit names only. */
+const initialSalarySources=['SkyEng 1','SkyEng 2','Saida','Nikita','Anna','Alina','LL'];
+let salaryPeriod=monthlyFocusPeriod().key;
+let salaryCalendarMonth=salaryPeriod;
+function ensureSalaryMonth(key){
+  if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(key))return false;
+  if(!state.salaryMonths||typeof state.salaryMonths!=='object')state.salaryMonths={};
+  if(state.salaryMonths[key])return false;
+  const previous=Object.keys(state.salaryMonths).filter(k=>k<key).sort().at(-1);
+  const sources=previous?state.salaryMonths[previous].sources.map(source=>({id:source.id,name:source.name,amountCents:null})):initialSalarySources.map((name,index)=>({id:'salary-default-'+index,name,amountCents:null}));
+  state.salaryMonths[key]={sources};return true;
+}
+function salaryMonthTotals(record){
+  return {total:record.sources.reduce((sum,source)=>sum+(source.amountCents??0),0),filled:record.sources.filter(source=>source.amountCents!==null&&source.amountCents!==undefined).length,count:record.sources.length};
+}
+function salarySetAmount(source,text){
+  if(!String(text).trim()){source.amountCents=null;return true;}
+  const cents=budgetParseCents(text);if(cents===null)return false;
+  source.amountCents=cents;return true;
+}
+function salaryBarsSvg(sources){
+  if(!sources.length)return '<p class="small">Добавь источник дохода.</p>';
+  if(!sources.some(source=>source.amountCents!==null&&source.amountCents!==undefined))return '<p class="small">Впиши суммы — здесь появится диаграмма доходов.</p>';
+  const width=720,left=170,right=140,height=sources.length*48+30,max=Math.max(1,...sources.map(source=>source.amountCents||0));
+  let svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+width+' '+height+'" role="img" aria-label="Доход по источникам"><title>Доход по источникам за выбранный месяц</title>';
+  sources.forEach((source,index)=>{
+    const y=index*48+15,amount=source.amountCents??0,w=amount/max*(width-left-right);
+    const label=source.amountCents==null?'—':budgetMoney(amount);
+    svg+='<g><title>'+esc(source.name+': '+label)+'</title><text x="'+(left-10)+'" y="'+(y+18)+'" text-anchor="end" fill="currentColor" font-size="13">'+esc(source.name.length>22?source.name.slice(0,21)+'…':source.name)+'</text><rect x="'+left+'" y="'+y+'" width="'+w+'" height="26" rx="5" fill="var(--accent)"/><text x="'+(left+w+8)+'" y="'+(y+18)+'" fill="currentColor" font-size="13">'+esc(label)+'</text></g>';
+  });return svg+'</svg>';
+}
+function salaryHistorySvg(months){
+  const points=months.filter(month=>month.filled>0);
+  if(!points.length)return '<p class="small">После ввода сумм появится график истории.</p>';
+  const width=Math.max(720,points.length*90+120),height=310,left=95,right=35,top=35,bottom=80,max=Math.max(1,...points.map(m=>m.total));
+  const serial=key=>Number(key.slice(0,4))*12+Number(key.slice(5))-1,first=serial(points[0].key),span=Math.max(1,serial(points.at(-1).key)-first);
+  const x=m=>points.length===1?(width+left-right)/2:left+(serial(m.key)-first)/span*(width-left-right);
+  const y=m=>height-bottom-m.total/max*(height-top-bottom);
+  let svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+width+' '+height+'" role="img" aria-label="Доход по месяцам"><title>История зарплаты по месяцам с внесёнными суммами</title>';
+  for(let i=0;i<=4;i++){const yy=height-bottom-i/4*(height-top-bottom);svg+='<line x1="'+left+'" x2="'+(width-right)+'" y1="'+yy+'" y2="'+yy+'" stroke="currentColor" opacity=".15"/><text x="'+(left-9)+'" y="'+(yy+4)+'" text-anchor="end" fill="currentColor" font-size="11">'+esc(budgetMoney(Math.round(max*i/4)))+'</text>'}
+  points.forEach((month,index)=>{
+    const previous=points[index-1];
+    if(previous&&serial(month.key)-serial(previous.key)===1)svg+='<line x1="'+x(previous)+'" y1="'+y(previous)+'" x2="'+x(month)+'" y2="'+y(month)+'" stroke="var(--accent)" stroke-width="3"/>';
+    svg+='<circle cx="'+x(month)+'" cy="'+y(month)+'" r="5" fill="var(--accent)"><title>'+esc(mandatoryMonthTitle(month.key)+': '+budgetMoney(month.total))+'</title></circle><text x="'+x(month)+'" y="'+(height-bottom+25)+'" text-anchor="end" transform="rotate(-35 '+x(month)+' '+(height-bottom+25)+')" fill="currentColor" font-size="12">'+esc(mandatoryMonthTitle(month.key))+'</text>';
+  });return svg+'</svg>';
+}
+function renderSalaryCharts(){
+  const record=state.salaryMonths[salaryPeriod],totals=salaryMonthTotals(record);
+  document.getElementById('salaryTotal').textContent=totals.filled?budgetMoney(totals.total):'—';
+  document.getElementById('salaryFilled').textContent='Суммы внесены: '+totals.filled+' из '+totals.count;
+  document.getElementById('salarySourcesChart').innerHTML=salaryBarsSvg(record.sources);
+  const current=monthlyFocusPeriod().key;
+  const months=Object.keys(state.salaryMonths).sort().map(key=>({key,...salaryMonthTotals(state.salaryMonths[key])}));
+  document.getElementById('salaryHistoryRows').innerHTML=months.map(month=>'<tr><th scope="row">'+mandatoryMonthTitle(month.key)+(month.key===current?' · текущий':month.key>current?' · будущий':'')+'</th><td>'+(month.filled?budgetMoney(month.total):'—')+'</td><td>'+month.filled+' / '+month.count+'</td></tr>').join('');
+  document.getElementById('salaryHistoryChart').innerHTML=salaryHistorySvg(months);
+}
+function renderSalaryMonth(){
+  const created=ensureSalaryMonth(salaryPeriod),record=state.salaryMonths[salaryPeriod];
+  document.getElementById('salaryMonthTitle').textContent=mandatoryMonthTitle(salaryPeriod);
+  document.getElementById('salaryMonthPicker').value=salaryPeriod;
+  document.getElementById('salaryToday').disabled=salaryPeriod===monthlyFocusPeriod().key;
+  const body=document.getElementById('salaryRows');body.replaceChildren();
+  record.sources.forEach((source,index)=>{
+    const row=document.createElement('tr'),nameCell=document.createElement('td'),name=document.createElement('input');name.type='text';name.value=source.name;name.maxLength=200;name.setAttribute('aria-label','Название источника дохода');
+    name.oninput=()=>{source.name=name.value;save();renderSalaryCharts()};nameCell.appendChild(name);
+    const amountCell=document.createElement('td'),amount=document.createElement('input');amount.type='text';amount.inputMode='decimal';amount.placeholder='Сумма';amount.value=source.amountCents==null?'':String(source.amountCents/100);amount.setAttribute('aria-label','Доход от '+source.name+' за месяц');
+    amount.oninput=()=>{
+      if(salarySetAmount(source,amount.value)){amount.removeAttribute('aria-invalid');document.getElementById('salaryMessage').textContent='';save();renderSalaryCharts()}
+      else{amount.setAttribute('aria-invalid','true');document.getElementById('salaryMessage').textContent='Введи неотрицательную сумму, максимум с двумя знаками после запятой.'}
+    };
+    amountCell.appendChild(amount);
+    const removeCell=document.createElement('td'),remove=document.createElement('button');remove.className='icon-btn';remove.textContent='×';remove.setAttribute('aria-label','Удалить источник: '+source.name);
+    const key=salaryPeriod;
+    remove.onclick=()=>deleteWithUndo(record.sources,index,()=>{if(salaryPeriod===key)renderSalaryMonth();else renderSalaryCharts()},'Источник дохода удалён');
+    removeCell.appendChild(remove);row.append(nameCell,amountCell,removeCell);body.appendChild(row);
+  });
+  renderSalaryCharts();
+  if(created){localStorage.setItem(KEY,JSON.stringify(state));if(window.MagicPlannerCloud)save()}
+}
+function openTreasurySalary(){
+  salaryPeriod=monthlyFocusPeriod().key;renderSalaryMonth();
+  ['salary','payments','funds'].forEach(tab=>document.getElementById('treasury-'+tab).style.display=tab==='salary'?'block':'none');
+  document.querySelectorAll('[data-treasury-tab]').forEach(button=>button.className='btn '+(button.dataset.treasuryTab==='salary'?'':'secondary'));
+}
+document.getElementById('salaryAddForm').onsubmit=e=>{
+  e.preventDefault();const input=document.getElementById('salaryNewName'),name=input.value.trim();if(!name)return;
+  state.salaryMonths[salaryPeriod].sources.push({id:crypto.randomUUID(),name,amountCents:null});
+  save();input.value='';renderSalaryMonth();input.focus();
+};
+document.getElementById('salaryPrev').onclick=()=>{salaryPeriod=shiftMandatoryMonth(salaryPeriod,-1);renderSalaryMonth()};
+document.getElementById('salaryNext').onclick=()=>{salaryPeriod=shiftMandatoryMonth(salaryPeriod,1);renderSalaryMonth()};
+document.getElementById('salaryToday').onclick=()=>{salaryPeriod=monthlyFocusPeriod().key;renderSalaryMonth()};
+document.getElementById('salaryMonthPicker').onchange=e=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value)){salaryPeriod=e.target.value;renderSalaryMonth()}};
+function refreshSalaryCalendar(){
+  const current=monthlyFocusPeriod().key;
+  if(current!==salaryCalendarMonth){salaryCalendarMonth=current;salaryPeriod=current;renderSalaryMonth()}
+}
+setInterval(refreshSalaryCalendar,60000);window.addEventListener('focus',refreshSalaryCalendar);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshSalaryCalendar()});
+
 function renderTreasury(){
+  renderSalaryMonth();
   renderPayments();
   renderFunds();
 }
 document.querySelectorAll('[data-treasury-tab]').forEach(b=>b.onclick=()=>{
   const t=b.dataset.treasuryTab;
   if(t==='payments')resetPaymentToToday();
-  ['payments','funds'].forEach(x=>document.getElementById('treasury-'+x).style.display=x===t?'block':'none');
+  if(t==='salary'){salaryPeriod=monthlyFocusPeriod().key;renderSalaryMonth()}
+  ['salary','payments','funds'].forEach(x=>document.getElementById('treasury-'+x).style.display=x===t?'block':'none');
   document.querySelectorAll('[data-treasury-tab]').forEach(z=>z.className='btn '+(z===b?'':'secondary'));
 });
 
@@ -1450,7 +1583,7 @@ document.getElementById('resetBtn').onclick=()=>{if(confirm('Удалить вс
 
 /* NAV */
 document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{
-  if(b.dataset.view==='treasury')resetPaymentToToday();
+  if(b.dataset.view==='treasury')openTreasurySalary();
   if(b.dataset.view==='mandatory')openCurrentMandatoryMonth();
   document.querySelectorAll('.navbtn').forEach(x=>x.classList.remove('active'));b.classList.add('active');
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(b.dataset.view).classList.add('active');
