@@ -539,7 +539,7 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 <div class="card budget-card">
 <div class="section-title"><div><h2>💳 Траты за месяц</h2><div class="sub">План, фактические расходы и остаток по категориям.</div></div></div>
 <div class="month-nav"><button id="budgetPrev" class="btn ghost" aria-label="Бюджет предыдущего месяца">←</button><strong id="budgetTitle"></strong><button id="budgetNext" class="btn ghost" aria-label="Бюджет следующего месяца">→</button><input id="budgetMonth" type="month" aria-label="Месяц бюджета"><button id="budgetToday" class="btn secondary">Текущий месяц</button></div>
-<p class="small">План можно менять для каждого месяца. Факт считается по записям расходов; в новом месяце он начинается с нуля.</p>
+<p class="small">План можно менять для каждого месяца. Для внезапных трат и праздников план по умолчанию — 0 ₽: просто записывай расходы и пояснение. Факт в новом месяце начинается с нуля.</p>
 <div id="budgetKpis" class="budget-kpis" aria-live="polite"></div>
 <div class="scrollbox"><table class="budget-table"><thead><tr><th>Категория</th><th>План, ₽</th><th>Факт, ₽</th><th>Остаток, ₽</th></tr></thead><tbody id="budgetRows"></tbody></table></div>
 <div class="budget-chart-panel"><h3>План и факт по категориям</h3><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span><span class="budget-over-key">● Факт выше плана</span></div><div id="budgetCategoryChart" class="budget-chart-scroll"></div></div>
@@ -1554,7 +1554,9 @@ const expenseBudgetCategories=[
 {id:'chatgpt',name:'ЧатГПТ',planCents:900000},
 {id:'internet',name:'Интернет',planCents:400000},
 {id:'npf',name:'НПФ',planCents:400000},
-{id:'ll',name:'ЛЛ',planCents:230000}
+{id:'ll',name:'ЛЛ',planCents:230000},
+{id:'unexpected',name:'Внезапные траты',planCents:0},
+{id:'celebrations',name:'Праздники и дни рождения',planCents:0}
 ];
 let budgetPeriod=monthlyFocusPeriod().key;
 function budgetParseCents(value){
@@ -1570,7 +1572,14 @@ function budgetMoney(cents){
 function ensureExpenseBudget(key){
   if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(key))return false;
   if(!state.expenseBudgets||typeof state.expenseBudgets!=='object')state.expenseBudgets={};
-  if(state.expenseBudgets[key])return false;
+  if(state.expenseBudgets[key]){
+    const record=state.expenseBudgets[key];let changed=false;
+    if(!record.plans){record.plans={};changed=true;}
+    expenseBudgetCategories.forEach(category=>{
+      if(record.plans[category.id]===undefined){record.plans[category.id]=category.planCents;changed=true;}
+    });
+    return changed;
+  }
   const previous=Object.keys(state.expenseBudgets).filter(k=>k<key).sort().at(-1);
   const prior=previous?state.expenseBudgets[previous]:null;
   state.expenseBudgets[key]={plans:Object.fromEntries(expenseBudgetCategories.map(c=>[c.id,prior?.plans?.[c.id]??c.planCents])),expenses:[]};
@@ -1646,10 +1655,10 @@ function renderExpenseBudget(key){
   const record=state.expenseBudgets[budgetPeriod],body=document.getElementById('budgetRows');body.replaceChildren();
   expenseBudgetCategories.forEach(category=>{
     const row=document.createElement('tr'),name=document.createElement('th');name.scope='row';name.textContent=category.name;
-    const planCell=document.createElement('td'),input=document.createElement('input');input.type='text';input.inputMode='decimal';input.value=String(record.plans[category.id]/100);input.setAttribute('aria-label','План на '+category.name+', рублей');
+    const planCell=document.createElement('td'),input=document.createElement('input');input.type='text';input.inputMode='decimal';input.value=String((record.plans[category.id]??category.planCents)/100);input.setAttribute('aria-label','План на '+category.name+', рублей');
     input.onchange=()=>{
       const value=budgetParseCents(input.value);
-      if(value===null){input.value=String(record.plans[category.id]/100);document.getElementById('budgetExpenseMessage').textContent='План: введи неотрицательную сумму с точностью до копеек.';return;}
+      if(value===null){input.value=String((record.plans[category.id]??category.planCents)/100);document.getElementById('budgetExpenseMessage').textContent='План: введи неотрицательную сумму с точностью до копеек.';return;}
       record.plans[category.id]=value;save();renderBudgetCharts();
     };
     planCell.appendChild(input);
