@@ -352,7 +352,7 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 .monthly-goal-box{margin-bottom:16px}
 .monthly-goal-box h3{font-family:Georgia,serif;font-weight:500;font-size:24px;margin:0}
 .monthly-goal-box .row-between{flex-wrap:wrap}
-.monthly-goal-selects{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.monthly-goal-selects{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .monthly-goal-selects select{width:100%;min-width:0;min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--panel-strong);color:var(--text)}
 .monthly-goal-selects select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:620px){.monthly-goal-selects{grid-template-columns:1fr}}
@@ -441,11 +441,12 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
         <button class="btn" id="clearWeekBtn">Новая неделя</button>
       </div>
       <div class="day-card monthly-goal-box" id="monthlyGoalBox">
-        <div class="row-between"><h3>🎯 Цель на месяц</h3><span class="badge" id="monthlyGoalPeriod"></span></div>
-        <p class="small">Выбери до двух целей из раздела «Цели». Изменения названий появятся здесь автоматически.</p>
+        <div class="row-between"><h3>🎯 Цели на месяц</h3><span class="badge" id="monthlyGoalPeriod"></span></div>
+        <p class="small">Выбери до трёх целей из раздела «Цели». Изменения названий появятся здесь автоматически.</p>
         <div class="monthly-goal-selects">
           <select id="monthlyGoalFirst" aria-label="Первая цель на месяц"></select>
           <select id="monthlyGoalSecond" aria-label="Вторая цель на месяц"></select>
+          <select id="monthlyGoalThird" aria-label="Третья цель на месяц"></select>
         </div>
         <p class="small" id="monthlyGoalHint"></p>
       </div>
@@ -776,13 +777,14 @@ function renderMonthlyFocus(){
   displayedFocusMonth=period.key;
   document.getElementById('monthlyGoalPeriod').textContent=period.label;
   const stored=state.monthlyGoalChoices[period.key];
-  const selected=(Array.isArray(stored)?stored:[]).slice(0,2);
+  const selected=(Array.isArray(stored)?stored:[]).slice(0,3);
   const goals=state.yearGoals;
   const first=document.getElementById('monthlyGoalFirst'),second=document.getElementById('monthlyGoalSecond');
-  [first,second].forEach((select,slot)=>{
-    const other=selected[1-slot];
+  const third=document.getElementById('monthlyGoalThird');
+  [first,second,third].forEach((select,slot)=>{
+    const others=selected.filter((id,index)=>index!==slot);
     select.innerHTML='<option value="">— Не выбрано —</option>'+goals.map(goal=>
-      '<option value="'+esc(goal.id)+'"'+(goal.id===other?' disabled':'')+'>'+
+      '<option value="'+esc(goal.id)+'"'+(others.includes(goal.id)?' disabled':'')+'>'+
       esc(goal.text.trim()||'Цель без названия')+(Number(goal.progress)>=100?' ✓':'')+'</option>'
     ).join('');
     select.value=goals.some(goal=>goal.id===selected[slot])?selected[slot]:'';
@@ -794,17 +796,19 @@ function renderMonthlyFocus(){
   refreshTaskGoalSelectors();
 }
 function chooseMonthlyFocus(slot,value){
+  if(!Number.isInteger(slot)||slot<0||slot>2)return;
   const period=monthlyFocusPeriod();
   const stored=state.monthlyGoalChoices[period.key];
-  const selected=(Array.isArray(stored)?stored:[]).slice(0,2);
-  if(value && (!state.yearGoals.some(goal=>goal.id===value)||selected[1-slot]===value))return;
+  const selected=(Array.isArray(stored)?stored:[]).slice(0,3);
+  if(value && (!state.yearGoals.some(goal=>goal.id===value)||selected.some((id,index)=>index!==slot&&id===value)))return;
   selected[slot]=value;
-  state.monthlyGoalChoices[period.key]=[selected[0]||'',selected[1]||''];
+  state.monthlyGoalChoices[period.key]=[selected[0]||'',selected[1]||'',selected[2]||''];
   save();
   renderMonthlyFocus();
 }
 document.getElementById('monthlyGoalFirst').onchange=e=>chooseMonthlyFocus(0,e.target.value);
 document.getElementById('monthlyGoalSecond').onchange=e=>chooseMonthlyFocus(1,e.target.value);
+document.getElementById('monthlyGoalThird').onchange=e=>chooseMonthlyFocus(2,e.target.value);
 function refreshMonthlyFocus(){
   if(monthlyFocusPeriod().key!==displayedFocusMonth)renderMonthlyFocus();
 }
