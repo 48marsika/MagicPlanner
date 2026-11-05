@@ -997,7 +997,8 @@ window.MagicPlannerCloud = {
   queueSave(state){
     if(!currentUser) return;
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(()=>writeCloud(JSON.parse(JSON.stringify(state))),650);
+    // Sync after 30 seconds without edits; save() keeps the local copy current.
+    saveTimer = setTimeout(()=>writeCloud(JSON.parse(JSON.stringify(state))),30000);
   }
 };
 
