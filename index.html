@@ -420,6 +420,32 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 .monthly-goal-add input{min-width:0;flex:1}
 .monthly-goal-add button{flex-shrink:0}
 @media(max-width:520px){.monthly-goal-add{flex-wrap:wrap}.monthly-goal-add input{flex-basis:100%}}
+
+.budget-card{--budget-plan:#8291b2;--budget-actual:#328579;--budget-over:#bc5059}
+.budget-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}
+.budget-kpi{padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--panel-strong)}
+.budget-kpi span{display:block;font-size:13px;color:var(--muted)}
+.budget-kpi strong{display:block;font-family:Georgia,serif;font-size:clamp(23px,3vw,33px);margin-top:5px}
+.budget-over-text{color:#bd394c!important}
+.budget-table{border-collapse:collapse;width:100%;min-width:550px}
+.budget-table th,.budget-table td{text-align:right;padding:12px;border-bottom:1px solid var(--line);white-space:nowrap}
+.budget-table th:first-child{text-align:left}
+.budget-table input{width:115px;padding:9px;border:1px solid var(--line);border-radius:9px;background:var(--panel-strong);color:var(--text);text-align:right}
+.budget-chart-panel{padding-top:16px;margin-top:16px;border-top:1px solid var(--line)}
+.budget-chart-panel h3,.budget-entry h3{font-family:Georgia,serif;font-weight:500;font-size:24px}
+.budget-legend{display:flex;flex-wrap:wrap;gap:16px;font-size:12px;margin:10px 0}
+.budget-plan-key{color:var(--budget-plan)}.budget-actual-key{color:var(--budget-actual)}.budget-over-key{color:var(--budget-over)}
+.budget-chart-scroll{overflow-x:auto}
+.budget-chart-scroll svg{display:block;width:100%;min-width:620px;height:auto}
+.budget-expense-form{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:end}
+.budget-expense-form label{display:grid;gap:6px;font-size:12px;color:var(--muted);min-width:0}
+.budget-expense-form input,.budget-expense-form select,#budgetMonth{width:100%;min-width:0;padding:11px;border:1px solid var(--line);border-radius:11px;background:var(--panel-strong);color:var(--text)}
+#budgetMonth{width:auto}
+.budget-journal{margin-top:20px}
+.budget-journal summary{cursor:pointer;margin-bottom:12px}
+.budget-expense-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+@media(max-width:620px){.budget-kpis{grid-template-columns:1fr}.budget-expense-form{grid-template-columns:1fr 1fr}.budget-expense-form .btn{grid-column:1/-1}}
+@media(max-width:390px){.budget-expense-form{grid-template-columns:1fr}}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -509,6 +535,21 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
   <p class="small" id="mandatoryMonthHint"></p>
   <div class="scrollbox mandatory-scroll" tabindex="0" aria-label="Таблица обязательных дел на месяц"><table class="mandatory-table"><thead id="mandatoryHead"></thead><tbody id="mandatoryBody"></tbody></table></div>
   <p class="small" id="mandatorySummary"></p>
+</div>
+<div class="card budget-card">
+<div class="section-title"><div><h2>💳 Траты за месяц</h2><div class="sub">План, фактические расходы и остаток по категориям.</div></div></div>
+<div class="month-nav"><button id="budgetPrev" class="btn ghost" aria-label="Бюджет предыдущего месяца">←</button><strong id="budgetTitle"></strong><button id="budgetNext" class="btn ghost" aria-label="Бюджет следующего месяца">→</button><input id="budgetMonth" type="month" aria-label="Месяц бюджета"><button id="budgetToday" class="btn secondary">Текущий месяц</button></div>
+<p class="small">План можно менять для каждого месяца. Факт считается по записям расходов; в новом месяце он начинается с нуля.</p>
+<div id="budgetKpis" class="budget-kpis" aria-live="polite"></div>
+<div class="scrollbox"><table class="budget-table"><thead><tr><th>Категория</th><th>План, ₽</th><th>Факт, ₽</th><th>Остаток, ₽</th></tr></thead><tbody id="budgetRows"></tbody></table></div>
+<div class="budget-chart-panel"><h3>План и факт по категориям</h3><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span><span class="budget-over-key">● Факт выше плана</span></div><div id="budgetCategoryChart" class="budget-chart-scroll"></div></div>
+<div class="budget-entry"><h3>Записать расход</h3><form id="budgetExpenseForm" class="budget-expense-form">
+<label>Дата<input id="budgetExpenseDate" type="date" required></label><label>Категория<select id="budgetExpenseCategory"></select></label>
+<label>Сумма, ₽<input id="budgetExpenseAmount" type="text" inputmode="decimal" placeholder="Например, 1250,50" required></label>
+<label>Комментарий<input id="budgetExpenseNote" type="text" maxlength="300" placeholder="Необязательно"></label>
+<button class="btn" type="submit">+ Записать</button></form><p class="small" id="budgetExpenseMessage" role="status"></p></div>
+<details class="budget-journal" open><summary>Расходы выбранного месяца <span id="budgetExpenseCount"></span></summary><div id="budgetExpenseList"></div></details>
+<div class="budget-chart-panel"><h3>План и факт по месяцам</h3><p class="small">Здесь показаны сохранённые месяцы, включая будущие. Нулевой факт означает, что расходы ещё не внесены.</p><div id="budgetHistoryChart" class="budget-chart-scroll"></div></div>
 </div>
 </section>
 <section id="goals" class="view">
@@ -688,6 +729,7 @@ const defaults={
   inbox:[],
   recurringTasks:[],
   mandatoryMonths:{},
+  expenseBudgets:{},
   treasury:{
     selectedYear:2026,selectedMonth:8,
     months:{},
@@ -1481,6 +1523,7 @@ function renderMandatoryMonth(){
     action.appendChild(remove);tr.appendChild(action);body.appendChild(tr);
   });
   updateMandatoryTotals();
+  renderExpenseBudget(mandatoryPeriod);
   if(created){localStorage.setItem(KEY,JSON.stringify(state));if(window.MagicPlannerCloud)save()}
 }
 document.getElementById('mandatoryAddForm').onsubmit=e=>{
@@ -1501,6 +1544,137 @@ function refreshMandatoryCalendar(){
 setInterval(refreshMandatoryCalendar,60000);
 window.addEventListener('focus',refreshMandatoryCalendar);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshMandatoryCalendar()});
+
+
+/* Amounts are stored as integer kopecks; months own independent plans and expenses. */
+const expenseBudgetCategories=[
+{id:'food-me',name:'Еда Я',planCents:1500000},
+{id:'food-cats',name:'Еда Коты',planCents:1500000},
+{id:'tax',name:'Налог',planCents:800000},
+{id:'chatgpt',name:'ЧатГПТ',planCents:900000},
+{id:'internet',name:'Интернет',planCents:400000},
+{id:'npf',name:'НПФ',planCents:400000},
+{id:'ll',name:'ЛЛ',planCents:230000}
+];
+let budgetPeriod=monthlyFocusPeriod().key;
+function budgetParseCents(value){
+  const text=String(value).replace(/\s/g,'').replace(',','.');
+  if(!/^\d+(?:\.\d{1,2})?$/.test(text))return null;
+  const [whole,fraction='']=text.split('.');
+  const cents=Number(whole)*100+Number(fraction.padEnd(2,'0'));
+  return Number.isSafeInteger(cents)&&cents<=100000000000?cents:null;
+}
+function budgetMoney(cents){
+  return new Intl.NumberFormat('ru-RU',{minimumFractionDigits:0,maximumFractionDigits:2}).format(cents/100)+' ₽';
+}
+function ensureExpenseBudget(key){
+  if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(key))return false;
+  if(!state.expenseBudgets||typeof state.expenseBudgets!=='object')state.expenseBudgets={};
+  if(state.expenseBudgets[key])return false;
+  const previous=Object.keys(state.expenseBudgets).filter(k=>k<key).sort().at(-1);
+  const prior=previous?state.expenseBudgets[previous]:null;
+  state.expenseBudgets[key]={plans:Object.fromEntries(expenseBudgetCategories.map(c=>[c.id,prior?.plans?.[c.id]??c.planCents])),expenses:[]};
+  return true;
+}
+function expenseBudgetTotals(record){
+  const rows=expenseBudgetCategories.map(c=>{
+    const plan=record.plans[c.id]??c.planCents;
+    const actual=record.expenses.filter(e=>e.category===c.id).reduce((sum,e)=>sum+e.amountCents,0);
+    return {...c,plan,actual,remaining:plan-actual};
+  });
+  return {rows,plan:rows.reduce((sum,r)=>sum+r.plan,0),actual:rows.reduce((sum,r)=>sum+r.actual,0)};
+}
+function addBudgetExpense(key,{date,category,amount,note}){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date.slice(0,7)!==key)return {ok:false,message:'Дата должна относиться к выбранному месяцу.'};
+  const parsed=new Date(date+'T12:00:00Z');
+  if(Number.isNaN(parsed.getTime())||parsed.toISOString().slice(0,10)!==date)return {ok:false,message:'Проверь дату.'};
+  const cents=budgetParseCents(amount);
+  if(cents===null||cents<=0)return {ok:false,message:'Введи сумму больше нуля, максимум с двумя знаками после запятой.'};
+  if(!expenseBudgetCategories.some(c=>c.id===category))return {ok:false,message:'Выбери категорию.'};
+  ensureExpenseBudget(key);
+  state.expenseBudgets[key].expenses.push({id:crypto.randomUUID(),date,category,amountCents:cents,note:String(note||'').trim().slice(0,300)});
+  return {ok:true};
+}
+function budgetSvgBars(rows,title,planLabel,actualLabel){
+  const width=720,left=142,right=135,plot=width-left-right,height=rows.length*69+42;
+  const max=Math.max(1,...rows.flatMap(r=>[r.plan,r.actual]));
+  const scale=value=>Math.max(0,value)/max*plot;
+  let body='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+width+' '+height+'" role="img" aria-label="'+esc(title)+'"><title>'+esc(title)+'</title>';
+  body+='<line x1="'+left+'" x2="'+left+'" y1="15" y2="'+(height-25)+'" stroke="currentColor" opacity=".25"/>';
+  rows.forEach((r,i)=>{
+    const y=i*69+23;
+    const accessible=r.name+': '+planLabel+' '+budgetMoney(r.plan)+', '+actualLabel+' '+budgetMoney(r.actual);
+    body+='<g><title>'+esc(accessible)+'</title><text x="'+(left-12)+'" y="'+(y+16)+'" text-anchor="end" fill="currentColor" font-size="14">'+esc(r.name)+'</text>';
+    body+='<rect x="'+left+'" y="'+y+'" width="'+scale(r.plan)+'" height="14" rx="4" fill="var(--budget-plan)"/><text x="'+(left+scale(r.plan)+8)+'" y="'+(y+12)+'" fill="currentColor" font-size="12">'+esc(budgetMoney(r.plan))+'</text>';
+    body+='<rect x="'+left+'" y="'+(y+20)+'" width="'+scale(r.actual)+'" height="14" rx="4" fill="'+(r.actual>r.plan?'var(--budget-over)':'var(--budget-actual)')+'"/><text x="'+(left+scale(r.actual)+8)+'" y="'+(y+32)+'" fill="currentColor" font-size="12">'+esc(budgetMoney(r.actual))+'</text></g>';
+  });
+  return body+'</svg>';
+}
+function renderBudgetCharts(){
+  const record=state.expenseBudgets[budgetPeriod],totals=expenseBudgetTotals(record),remaining=totals.plan-totals.actual;
+  const cards=[['План на месяц',budgetMoney(totals.plan)],['Потрачено',budgetMoney(totals.actual)],[remaining<0?'Перерасход':'Остаток',budgetMoney(Math.abs(remaining))]];
+  document.getElementById('budgetKpis').innerHTML=cards.map(([label,value],i)=>'<div class="budget-kpi'+(i===2&&remaining<0?' budget-over-text':'')+'"><span>'+label+'</span><strong>'+value+'</strong></div>').join('');
+  totals.rows.forEach(row=>{
+    const actual=document.getElementById('budget-actual-'+row.id),rest=document.getElementById('budget-rest-'+row.id);
+    if(actual)actual.textContent=budgetMoney(row.actual);
+    if(rest){rest.textContent=budgetMoney(row.remaining);rest.classList.toggle('budget-over-text',row.remaining<0)}
+  });
+  document.getElementById('budgetCategoryChart').innerHTML=budgetSvgBars(totals.rows,'План и фактические расходы за '+mandatoryMonthTitle(budgetPeriod),'план','факт');
+  const history=Object.keys(state.expenseBudgets).sort().map(key=>{const t=expenseBudgetTotals(state.expenseBudgets[key]);return {name:mandatoryMonthTitle(key),plan:t.plan,actual:t.actual}});
+  document.getElementById('budgetHistoryChart').innerHTML=budgetSvgBars(history,'Сравнение бюджета по месяцам','план','факт');
+}
+function renderBudgetExpenses(){
+  const list=document.getElementById('budgetExpenseList'),record=state.expenseBudgets[budgetPeriod];
+  list.replaceChildren();document.getElementById('budgetExpenseCount').textContent='('+record.expenses.length+')';
+  if(!record.expenses.length){list.textContent='Расходы пока не записаны.';return;}
+  record.expenses.map((expense,index)=>({expense,index})).sort((a,b)=>b.expense.date.localeCompare(a.expense.date)||b.index-a.index).forEach(({expense,index})=>{
+    const row=document.createElement('div');row.className='budget-expense-row';
+    const text=document.createElement('div'),title=document.createElement('strong');title.textContent=budgetMoney(expense.amountCents)+' · '+expenseBudgetCategories.find(c=>c.id===expense.category).name;
+    const note=document.createElement('div');note.className='small';note.textContent=expense.date.split('-').reverse().join('.')+(expense.note?' · '+expense.note:'');text.append(title,note);
+    const remove=document.createElement('button');remove.className='icon-btn';remove.textContent='×';remove.setAttribute('aria-label','Удалить расход '+budgetMoney(expense.amountCents));
+    const key=budgetPeriod;
+    remove.onclick=()=>deleteWithUndo(record.expenses,index,()=>{if(budgetPeriod===key)renderBudgetExpenses();renderBudgetCharts()},'Расход удалён');
+    row.append(text,remove);list.appendChild(row);
+  });
+}
+function renderExpenseBudget(key){
+  if(key)budgetPeriod=key;
+  const created=ensureExpenseBudget(budgetPeriod);
+  document.getElementById('budgetTitle').textContent=mandatoryMonthTitle(budgetPeriod);
+  document.getElementById('budgetMonth').value=budgetPeriod;
+  document.getElementById('budgetToday').disabled=budgetPeriod===monthlyFocusPeriod().key;
+  const record=state.expenseBudgets[budgetPeriod],body=document.getElementById('budgetRows');body.replaceChildren();
+  expenseBudgetCategories.forEach(category=>{
+    const row=document.createElement('tr'),name=document.createElement('th');name.scope='row';name.textContent=category.name;
+    const planCell=document.createElement('td'),input=document.createElement('input');input.type='text';input.inputMode='decimal';input.value=String(record.plans[category.id]/100);input.setAttribute('aria-label','План на '+category.name+', рублей');
+    input.onchange=()=>{
+      const value=budgetParseCents(input.value);
+      if(value===null){input.value=String(record.plans[category.id]/100);document.getElementById('budgetExpenseMessage').textContent='План: введи неотрицательную сумму с точностью до копеек.';return;}
+      record.plans[category.id]=value;save();renderBudgetCharts();
+    };
+    planCell.appendChild(input);
+    const actual=document.createElement('td');actual.id='budget-actual-'+category.id;
+    const rest=document.createElement('td');rest.id='budget-rest-'+category.id;row.append(name,planCell,actual,rest);body.appendChild(row);
+  });
+  const date=document.getElementById('budgetExpenseDate'),today=localPlannerDate();
+  date.min=budgetPeriod+'-01';date.max=shiftPlannerDate(shiftMandatoryMonth(budgetPeriod,1)+'-01',-1);
+  if(date.value.slice(0,7)!==budgetPeriod)date.value=today.slice(0,7)===budgetPeriod?today:budgetPeriod+'-01';
+  document.getElementById('budgetExpenseMessage').textContent='';
+  renderBudgetExpenses();renderBudgetCharts();
+  if(created){localStorage.setItem(KEY,JSON.stringify(state));if(window.MagicPlannerCloud)save()}
+}
+expenseBudgetCategories.forEach(c=>{const option=document.createElement('option');option.value=c.id;option.textContent=c.name;document.getElementById('budgetExpenseCategory').appendChild(option)});
+document.getElementById('budgetExpenseForm').onsubmit=e=>{
+  e.preventDefault();
+  const amount=document.getElementById('budgetExpenseAmount'),note=document.getElementById('budgetExpenseNote');
+  const result=addBudgetExpense(budgetPeriod,{date:document.getElementById('budgetExpenseDate').value,category:document.getElementById('budgetExpenseCategory').value,amount:amount.value,note:note.value});
+  if(!result.ok){document.getElementById('budgetExpenseMessage').textContent=result.message;return;}
+  save();amount.value='';note.value='';renderBudgetExpenses();renderBudgetCharts();document.getElementById('budgetExpenseMessage').textContent='Расход записан.';amount.focus();
+};
+document.getElementById('budgetPrev').onclick=()=>renderExpenseBudget(shiftMandatoryMonth(budgetPeriod,-1));
+document.getElementById('budgetNext').onclick=()=>renderExpenseBudget(shiftMandatoryMonth(budgetPeriod,1));
+document.getElementById('budgetToday').onclick=()=>renderExpenseBudget(monthlyFocusPeriod().key);
+document.getElementById('budgetMonth').onchange=e=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value))renderExpenseBudget(e.target.value)};
 
 function renderAll(){
   renderMandatoryMonth();
