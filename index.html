@@ -529,6 +529,22 @@ body .body-table input:focus{background:var(--panel-strong);border-color:var(--a
 body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
 @media(max-width:520px){body :is(.budget-chart-panel,.salary-chart-panel){padding:12px;border-radius:18px}}
 
+
+.salary-payment-helper{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.salary-payment-helper>summary{font-family:Georgia,serif;font-size:23px;cursor:pointer;padding:7px 0;border-radius:14px}
+.helper-month-nav{margin-top:12px}.helper-month-nav strong{min-width:120px}
+.helper-payment-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.helper-payment-column{padding:14px;border:1px solid var(--line);border-radius:22px;background:var(--panel-strong);min-width:0}
+.helper-payment-column h4{font-family:Georgia,serif;font-size:22px;font-weight:500;margin:0 0 5px}
+.helper-payment-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:12px 0;border-top:1px solid var(--line)}
+.helper-payment-row>label:first-child{display:flex;align-items:center;gap:8px;flex:1;min-width:0;overflow-wrap:anywhere}
+.helper-payment-row input[type=checkbox]{width:24px;height:24px;accent-color:var(--accent);flex-shrink:0}
+.helper-payment-amount{font-size:14px;white-space:nowrap}
+.helper-payment-date{display:flex;align-items:center;gap:8px;flex-basis:100%;font-size:12px;color:var(--muted)}
+.helper-payment-date input{width:100%;min-width:0;padding:7px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text)}
+.helper-payment-date input:disabled{opacity:.45}
+.helper-payment-done>label:first-child span{font-weight:700}
+@media(max-width:520px){.helper-payment-columns{gap:8px}.helper-payment-column{padding:10px}.helper-payment-row>label:first-child{flex-basis:100%}.helper-payment-date{flex-wrap:wrap}.helper-payment-column h4{font-size:19px}.helper-payment-column .small{font-size:11px}}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -568,6 +584,13 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
           <button class="btn" type="submit">+ Добавить цель</button>
         </form>
         <p class="small" id="monthlyGoalHint" aria-live="polite"></p>
+<details id="salaryPaymentHelper" class="salary-payment-helper" open>
+<summary>💳 Помощник по выплатам</summary>
+<div class="month-nav helper-month-nav"><button id="helperPrev" class="btn ghost" type="button" aria-label="Предыдущий месяц помощника">←</button><strong id="helperMonthTitle"></strong><button id="helperNext" class="btn ghost" type="button" aria-label="Следующий месяц помощника">→</button><button id="helperToday" class="btn secondary" type="button">Сейчас</button></div>
+<p class="small">Отметь, что оплачено. Дата подставляется при отметке — её можно изменить. Отметки сохраняются отдельно для каждого месяца.</p>
+<div id="helperPaymentColumns" class="helper-payment-columns"></div>
+<p class="small">Это список распределения выплат. Сами расходы записывай в «Казне → Расходы».</p>
+</details>
       </div>
       <details class="inbox-panel day-card" open>
         <summary>📥 Входящие <span id="inboxCount"></span></summary>
@@ -854,6 +877,7 @@ const defaults={
   mandatoryMonths:{},
   expenseBudgets:{},
   salaryMonths:{},
+  salaryPaymentHelper:{},
   treasury:{
     selectedYear:2026,selectedMonth:8,
     months:{},
@@ -945,7 +969,92 @@ function monthlyFocusPeriod(){
   return {key:year+'-'+month,label:monthNames[Number(month)-1]+' '+year};
 }
 let displayedFocusMonth='';
+
+/* Salary allocation checklist; isolated from actual expenses to prevent double counting. */
+const salaryHelperGroups=[
+{id:'skyeng-1',name:'SkyEng 1',items:[
+{id:'food-me',name:'Еда мне',amount:7000},
+{id:'food-cats',name:'Еда котам',amount:7000},
+{id:'green-dot',name:'Зеленая Точка',amount:1000},
+{id:'mts',name:'МТС',amount:1000},
+{id:'tax',name:'Налог',amount:8000},
+{id:'remainder',name:'Остаток — ТбанкК',amount:null}
+]},
+{id:'skyeng-2',name:'SkyEng 2',items:[
+{id:'food-me',name:'Еда мне',amount:7000},
+{id:'food-cats',name:'Еда котам',amount:7000},
+{id:'codex',name:'Кодекс',amount:9000},
+{id:'remainder',name:'Остаток — ТбанкК',amount:null}
+]}];
+let helperPaymentPeriod=monthlyFocusPeriod().key;
+let helperPaymentCalendar=helperPaymentPeriod;
+function helperPaymentKey(group,item){return group+':'+item}
+function helperPaymentRecord(month){
+  return state.salaryPaymentHelper?.[month]||{};
+}
+function setHelperPayment(month,groupId,itemId,checked,date){
+  const group=salaryHelperGroups.find(group=>group.id===groupId);
+  if(!group||!group.items.some(item=>item.id===itemId)||!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))return false;
+  const paidDate=checked?(date||localPlannerDate()):'';
+  if(checked){
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(paidDate))return false;
+    const parsed=new Date(paidDate+'T12:00:00Z');
+    if(Number.isNaN(parsed.getTime())||parsed.toISOString().slice(0,10)!==paidDate)return false;
+  }
+  if(!state.salaryPaymentHelper||typeof state.salaryPaymentHelper!=='object')state.salaryPaymentHelper={};
+  if(!state.salaryPaymentHelper[month])state.salaryPaymentHelper[month]={};
+  state.salaryPaymentHelper[month][helperPaymentKey(groupId,itemId)]={checked:!!checked,paidDate};
+  return true;
+}
+function renderSalaryPaymentHelper(){
+  const now=monthlyFocusPeriod().key;
+  if(now!==helperPaymentCalendar){if(helperPaymentPeriod===helperPaymentCalendar)helperPaymentPeriod=now;helperPaymentCalendar=now}
+  const details=document.getElementById('salaryPaymentHelper');
+  details.open=state.settings.payHelperCollapsed!==true;
+  document.getElementById('helperMonthTitle').textContent=mandatoryMonthTitle(helperPaymentPeriod);
+  document.getElementById('helperToday').disabled=helperPaymentPeriod===now;
+  const columns=document.getElementById('helperPaymentColumns');columns.replaceChildren();
+  const record=helperPaymentRecord(helperPaymentPeriod);
+  salaryHelperGroups.forEach(group=>{
+    const column=document.createElement('div');column.className='helper-payment-column';
+    const heading=document.createElement('h4');heading.textContent=group.name;column.appendChild(heading);
+    const count=group.items.filter(item=>record[helperPaymentKey(group.id,item.id)]?.checked).length;
+    const info=document.createElement('p');info.className='small';
+    info.textContent='Отмечено '+count+' из '+group.items.length+' · суммы '+budgetMoney(group.items.reduce((sum,item)=>sum+(item.amount||0)*100,0));
+    column.appendChild(info);
+    group.items.forEach(item=>{
+      const mark=record[helperPaymentKey(group.id,item.id)]||{},row=document.createElement('div');row.className='helper-payment-row';
+      const label=document.createElement('label'),checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=!!mark.checked;
+      const text=document.createElement('span');text.textContent=item.name;
+      label.append(checkbox,text);row.appendChild(label);
+      if(item.amount!==null){const amount=document.createElement('strong');amount.className='helper-payment-amount';amount.textContent=budgetMoney(item.amount*100);row.appendChild(amount)}
+      const dateLabel=document.createElement('label');dateLabel.className='helper-payment-date';
+      const dateText=document.createElement('span');dateText.textContent='Дата';
+      const date=document.createElement('input');date.type='date';date.value=mark.paidDate||'';date.disabled=!mark.checked;date.setAttribute('aria-label','Дата: '+group.name+' — '+item.name);
+      dateLabel.append(dateText,date);row.appendChild(dateLabel);
+      checkbox.onchange=()=>{
+        if(setHelperPayment(helperPaymentPeriod,group.id,item.id,checkbox.checked)){save();renderSalaryPaymentHelper()}
+      };
+      date.onchange=()=>{
+        if(!setHelperPayment(helperPaymentPeriod,group.id,item.id,true,date.value)){date.value=helperPaymentRecord(helperPaymentPeriod)[helperPaymentKey(group.id,item.id)]?.paidDate||'';toast('Укажи корректную дату');return;}
+        save();
+      };
+      if(mark.checked)row.classList.add('helper-payment-done');
+      column.appendChild(row);
+    });
+    columns.appendChild(column);
+  });
+}
+document.getElementById('salaryPaymentHelper').addEventListener('toggle',e=>{
+  const collapsed=!e.target.open;
+  if(state.settings.payHelperCollapsed!==collapsed){state.settings.payHelperCollapsed=collapsed;save()}
+});
+document.getElementById('helperPrev').onclick=()=>{helperPaymentPeriod=shiftMandatoryMonth(helperPaymentPeriod,-1);renderSalaryPaymentHelper()};
+document.getElementById('helperNext').onclick=()=>{helperPaymentPeriod=shiftMandatoryMonth(helperPaymentPeriod,1);renderSalaryPaymentHelper()};
+document.getElementById('helperToday').onclick=()=>{helperPaymentPeriod=monthlyFocusPeriod().key;renderSalaryPaymentHelper()};
+
 function renderMonthlyFocus(){
+  renderSalaryPaymentHelper();
   ensureGoalIds();
   if(!state.monthlyGoalChoices || typeof state.monthlyGoalChoices!=='object')state.monthlyGoalChoices={};
   const period=monthlyFocusPeriod();
