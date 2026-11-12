@@ -396,7 +396,7 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 .recurring-row{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding:12px 0;gap:12px;overflow-wrap:anywhere}
 #recurringList{margin-top:14px}
 
-.tabbar{grid-template-columns:repeat(4,minmax(0,1fr))}
+.tabbar{grid-template-columns:repeat(5,minmax(0,1fr))}
 .mandatory-add{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:16px 0}
 .mandatory-add>.text-input{flex:1;min-width:170px}
 .mandatory-add label{display:flex;align-items:center;gap:8px;font-size:13px}
@@ -545,6 +545,22 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
 .helper-payment-date input:disabled{opacity:.45}
 .helper-payment-done>label:first-child span{font-weight:700}
 @media(max-width:520px){.helper-payment-columns{gap:8px}.helper-payment-column{padding:10px}.helper-payment-row>label:first-child{flex-basis:100%}.helper-payment-date{flex-wrap:wrap}.helper-payment-column h4{font-size:19px}.helper-payment-column .small{font-size:11px}}
+
+.plants-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.plant-card{overflow:hidden;border:1px solid var(--line);border-radius:24px;background:var(--panel-strong);min-width:0}
+.plant-image{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:contain;border-radius:22px}
+.plant-image-empty{display:grid;place-items:center;font-size:80px;background:var(--month-soft,var(--panel))}
+.plant-content{padding:18px}.plant-content h3{font-family:Georgia,serif;font-size:27px;font-weight:500;margin:0}
+.plant-content p,.plant-content dd{line-height:1.55;overflow-wrap:anywhere}
+.plant-content dt{color:var(--muted);font-size:12px;font-weight:700;margin-top:12px}
+.plant-content dd{margin:3px 0 0;font-size:14px}
+.plant-content details{margin-top:16px;font-size:12px}.plant-content summary{cursor:pointer}
+.plant-content a{display:block;margin-top:7px;color:var(--accent)}
+.plant-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.plant-plus{font-size:28px;min-width:48px;min-height:48px;padding:4px 12px}
+.plant-form-grid{display:grid;gap:12px;margin-top:16px}.plant-form-grid label{display:grid;gap:5px;font-size:13px;color:var(--muted)}
+.plant-form-grid input,.plant-form-grid textarea{width:100%;border:1px solid var(--line);padding:11px;background:var(--panel);color:var(--text);border-radius:14px}
+@media(max-width:620px){.plants-grid{grid-template-columns:1fr}.plant-image{max-height:330px}.plant-content{padding:15px}}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -763,7 +779,15 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
     </div>
   </section>
 
-  <section id="settings" class="view">
+  <section id="plants" class="view">
+<div class="card"><div class="section-title"><div><h2>🌿 Домашние растения</h2><div class="sub">Мой домашний сад: коротко об уходе и место для своих наблюдений</div></div><button class="btn plant-plus" id="addPlant" aria-label="Добавить растение" title="Добавить растение">+</button></div>
+<p class="small">Иллюстрации показывают типичный вид, а не точную копию твоего растения. Полив зависит от просыхания грунта, света и сезона.</p>
+<div id="plantsGrid" class="plants-grid"></div></div>
+<dialog id="plantDialog" class="week-dialog"><form id="plantForm"><div class="row-between"><h3 id="plantDialogTitle">Новое растение</h3><button id="closePlantDialog" class="btn ghost" type="button" aria-label="Закрыть">×</button></div>
+<div class="plant-form-grid"><label>Название<input type="text" id="plantField-name" maxlength="200" required></label><label>Вид / сорт<input type="text" id="plantField-botanical" maxlength="200"></label><label>Кратко о растении<textarea id="plantField-about" rows="2" maxlength="2000"></textarea></label><label>Свет<textarea id="plantField-light" rows="2" maxlength="2000"></textarea></label><label>Полив<textarea id="plantField-water" rows="2" maxlength="2000"></textarea></label><label>Температура и воздух<textarea id="plantField-climate" rows="2" maxlength="2000"></textarea></label><label>Подкормка<textarea id="plantField-feeding" rows="2" maxlength="2000"></textarea></label><label>Грунт и пересадка<textarea id="plantField-repot" rows="2" maxlength="2000"></textarea></label><label>Мои заметки<textarea id="plantField-notes" rows="2" maxlength="2000"></textarea></label>
+<label>Своё фото (необязательно)<input id="plantPhoto" type="file" accept="image/*"></label></div><p class="small" id="plantFormMessage" role="status"></p><div class="week-transfer-actions"><button id="cancelPlantDialog" class="btn ghost" type="button">Отмена</button><button class="btn" id="savePlant" type="submit">Сохранить</button></div></form></dialog>
+</section>
+<section id="settings" class="view">
     <div class="card">
       <div class="section-title"><div><h2>⚙️ Настройки</h2><div class="sub">Оформление, размер и данные</div></div></div>
       <div class="settings-grid">
@@ -837,6 +861,7 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
 
   <button class="navbtn" data-view="goals"><span>🎯</span><span>Цели</span></button>
   <button class="navbtn" data-view="treasury"><span>💰</span><span>Казна</span></button>
+  <button class="navbtn" data-view="plants" aria-label="Домашние растения" title="Домашние растения"><span>🌿</span><span>Растения</span></button>
   <button class="navbtn" data-view="body"><span>🧍</span><span>Тело</span></button>
 
 </nav>
@@ -878,6 +903,7 @@ const defaults={
   expenseBudgets:{},
   salaryMonths:{},
   salaryPaymentHelper:{},
+  houseplants:null,
   treasury:{
     selectedYear:2026,selectedMonth:8,
     months:{},
@@ -2187,7 +2213,88 @@ document.getElementById('paymentExpenseForm').onsubmit=e=>{
   save();closePaymentExpense();renderExpenseBudget();toast('Оплата добавлена в расходы');
 };
 
+
+const initialHouseplants=[{"id":"plant-chestnut","name":"Каштан комнатный","botanical":"Castanospermum australe — предполагаемый вид","image":"./assets/plants/chestnut.webp","about":"Австралийский каштан с глянцевыми перистыми листьями. Название условное: это не обычный уличный каштан.","light":"Яркий рассеянный свет, без обжигающего полуденного солнца.","water":"Дай верхней части грунта подсохнуть; затем полей и слей воду из поддона. Зимой проверяй грунт, поливай реже.","climate":"Ориентир 18–24 °C. Береги от холодных сквозняков и близкой батареи.","feeding":"Подкормка для комнатных растений в период активного роста по инструкции; зимой при остановке роста — пауза.","repot":"Рыхлый, хорошо дренируемый грунт; горшок с отверстиями. Пересаживай, когда корни заполнят ёмкость.","notes":"Вид не подтверждён фото. Семена токсичны — держи вне доступа котов и детей.","sources":[{"label":"Уход: PLNTS","url":"https://plnts.com/en/care/houseplants-family/castano"},{"label":"О токсичности семян","url":"https://www.poisonsinfo.health.qld.gov.au/plants-and-mushrooms/black-bean-castanospermum-australe"}]},{"id":"plant-chamaedorea","name":"Хамедорея","botanical":"Chamaedorea elegans — типичный комнатный вид","image":"./assets/plants/chamaedorea.webp","about":"Медленнорастущая комнатная пальма с тонкими перистыми листьями.","light":"Рассеянный свет или лёгкая полутень. Прямое летнее солнце может обжечь листья.","water":"Поливай после подсыхания поверхности грунта. Не оставляй воду в кашпо; зимой полив реже.","climate":"В росте предпочитает 20–27 °C. Не ставь вплотную к батарее; сухой воздух подсушивает кончики.","feeding":"Сбалансированная жидкая подкормка примерно раз в месяц весной и летом, по инструкции.","repot":"Лёгкий дренируемый субстрат. Пересадка весной, когда корням тесно; новый горшок лишь немного больше.","notes":"Протирай листья от пыли. Сухие кончики не означают автоматически, что нужно больше поливать.","sources":[{"label":"Уход: RHS","url":"https://www.rhs.org.uk/plants/chamaedorea/growing-guide"}]},{"id":"plant-pachira","name":"Пахира","botanical":"Pachira aquatica — ориентир для карточки","image":"./assets/plants/pachira.webp","about":"Тропическое деревце с пальчатыми листьями; стволы часто продаются заплетёнными.","light":"Светлое место с рассеянным светом; переносит полутень.","water":"Проверяй влажность грунта перед поливом: он не должен постоянно оставаться мокрым. Сливай воду из кашпо.","climate":"Тёплое защищённое место без холодных сквозняков.","feeding":"Подкармливай при активном росте удобрением для комнатных растений по инструкции; не подкармливай пересушенные корни.","repot":"Рыхлый, свободно пропускающий воду субстрат и дренажные отверстия. Не бери горшок сильно больше корневого кома.","notes":"Осматривай листья и ствол на щитовку и паутинного клеща. Объём полива зависит от горшка, света и сезона.","sources":[{"label":"Уход: RHS","url":"https://www.rhs.org.uk/plants/12078/pachira-aquatica/details"},{"label":"Общие правила: RHS","url":"https://www.rhs.org.uk/plants/types/houseplants/growing-guide"}]},{"id":"plant-peperomia","name":"Пеперомия","botanical":"Peperomia spp.; иллюстрация — P. obtusifolia","image":"./assets/plants/peperomia.webp","about":"Компактное растение с декоративными листьями. Видов много: карточка даёт общий ориентир.","light":"Яркий рассеянный свет; береги от прямого летнего солнца.","water":"Давай грунту частично просохнуть и проверяй его пальцем. Не поливай по календарю; зимой реже.","climate":"Тёплая комната, ориентир 18–30 °C; без сквозняков и жара батареи.","feeding":"В активный рост — жидкое удобрение в половинной концентрации примерно раз в две недели; сверяйся с инструкцией.","repot":"Рыхлый субстрат для комнатных растений с разрыхлителем. Небольшой горшок; пересадка по заполнению корнями.","notes":"Вид не подтверждён: для суккулентных пеперомий нужен более быстро просыхающий грунт. Главный риск — перелив.","sources":[{"label":"Уход: RHS","url":"https://www.rhs.org.uk/plants/peperomia/how-to-grow-peperomia"}]}];
+const plantFieldNames=[["name","Название"],["botanical","Вид / сорт"],["about","Кратко о растении"],["light","Свет"],["water","Полив"],["climate","Температура и воздух"],["feeding","Подкормка"],["repot","Грунт и пересадка"],["notes","Мои заметки"]];
+let editingPlantId=null;
+function ensureHouseplants(){
+  if(Array.isArray(state.houseplants))return false;
+  state.houseplants=clone(initialHouseplants);
+  localStorage.setItem(KEY,JSON.stringify(state));
+  if(window.MagicPlannerCloud)save();
+  return true;
+}
+function storeHouseplant(values,id){
+  const name=String(values.name||'').trim();
+  if(!name)return false;
+  ensureHouseplants();
+  const index=id?state.houseplants.findIndex(plant=>plant.id===id):-1;
+  if(id&&index<0)return false;
+  const previous=index>=0?state.houseplants[index]:{};
+  const record={...previous,id:id||crypto.randomUUID(),sources:previous.sources||[],image:values.image??previous.image??''};
+  plantFieldNames.forEach(([key])=>record[key]=String(values[key]||'').trim().slice(0,key==='name'||key==='botanical'?200:2000));
+  if(index>=0)state.houseplants[index]=record;else state.houseplants.push(record);
+  return true;
+}
+function renderHouseplants(){
+  ensureHouseplants();
+  const grid=document.getElementById('plantsGrid');grid.replaceChildren();
+  if(!state.houseplants.length){const p=document.createElement('p');p.className='small';p.textContent='Добавь растение кнопкой «+».';grid.appendChild(p)}
+  state.houseplants.forEach((plant,index)=>{
+    const card=document.createElement('article');card.className='plant-card';
+    if(plant.image){const image=document.createElement('img');image.className='plant-image';image.src=plant.image;image.alt='Иллюстрация: '+plant.name;image.loading='lazy';image.width=640;image.height=640;card.appendChild(image)}
+    else{const placeholder=document.createElement('div');placeholder.className='plant-image plant-image-empty';placeholder.textContent='🌿';card.appendChild(placeholder)}
+    const content=document.createElement('div');content.className='plant-content';
+    const title=document.createElement('h3');title.textContent=plant.name;
+    const botanical=document.createElement('p');botanical.className='small';botanical.textContent=plant.botanical||'Моё растение';
+    const about=document.createElement('p');about.textContent=plant.about||'Добавь описание через «Изменить».';
+    content.append(title,botanical,about);
+    const care=document.createElement('dl');
+    plantFieldNames.slice(3).forEach(([key,label])=>{
+      if(!plant[key])return;
+      const term=document.createElement('dt'),description=document.createElement('dd');
+      term.textContent=label;description.textContent=plant[key];care.append(term,description);
+    });content.appendChild(care);
+    if(plant.sources?.length){
+      const links=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Источники ухода';links.appendChild(summary);
+      plant.sources.forEach(source=>{const link=document.createElement('a');link.href=source.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent=source.label;links.appendChild(link)});content.appendChild(links);
+    }
+    const actions=document.createElement('div');actions.className='plant-actions';
+    const edit=document.createElement('button');edit.className='btn secondary';edit.textContent='Изменить';edit.onclick=()=>openPlantDialog(plant.id);
+    const remove=document.createElement('button');remove.className='btn ghost';remove.textContent='Удалить';remove.setAttribute('aria-label','Удалить растение '+plant.name);
+    remove.onclick=()=>deleteWithUndo(state.houseplants,index,renderHouseplants,'Растение удалено');
+    actions.append(edit,remove);content.appendChild(actions);card.appendChild(content);grid.appendChild(card);
+  });
+}
+function openPlantDialog(id){
+  ensureHouseplants();editingPlantId=id||null;
+  const plant=id?state.houseplants.find(plant=>plant.id===id):{};
+  if(!plant)return;
+  document.getElementById('plantDialogTitle').textContent=id?'Изменить растение':'Новое растение';
+  plantFieldNames.forEach(([key])=>document.getElementById('plantField-'+key).value=plant[key]||'');
+  document.getElementById('plantPhoto').value='';document.getElementById('plantFormMessage').textContent='';
+  document.getElementById('plantDialog').showModal();
+}
+function closePlantDialog(){document.getElementById('plantDialog').close();editingPlantId=null}
+document.getElementById('addPlant').onclick=()=>openPlantDialog();
+document.getElementById('closePlantDialog').onclick=closePlantDialog;
+document.getElementById('cancelPlantDialog').onclick=closePlantDialog;
+document.getElementById('plantDialog').addEventListener('cancel',()=>{editingPlantId=null});
+document.getElementById('plantForm').onsubmit=async e=>{
+  e.preventDefault();
+  const id=editingPlantId,values=Object.fromEntries(plantFieldNames.map(([key])=>[key,document.getElementById('plantField-'+key).value]));
+  const button=document.getElementById('savePlant');button.disabled=true;
+  try{
+    const photo=document.getElementById('plantPhoto').files[0];
+    if(photo)values.image=await resizeImage(photo,700);
+    if(!storeHouseplant(values,id)){document.getElementById('plantFormMessage').textContent='Укажи название. Если растение удалено на другом устройстве, открой карточку заново.';return;}
+    save();closePlantDialog();renderHouseplants();toast('Растение сохранено');
+  }catch(error){document.getElementById('plantFormMessage').textContent='Не удалось прочитать фото. Попробуй другое изображение.'}
+  finally{button.disabled=false}
+};
+
 function renderAll(){
+  renderHouseplants();
   renderMandatoryMonth();
   renderWeek();
   renderHabits();
