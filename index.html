@@ -396,7 +396,7 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 .recurring-row{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding:12px 0;gap:12px;overflow-wrap:anywhere}
 #recurringList{margin-top:14px}
 
-.tabbar{grid-template-columns:repeat(6,minmax(0,1fr))}
+.tabbar{grid-template-columns:repeat(4,minmax(0,1fr))}
 .mandatory-add{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:16px 0}
 .mandatory-add>.text-input{flex:1;min-width:170px}
 .mandatory-add label{display:flex;align-items:center;gap:8px;font-size:13px}
@@ -638,6 +638,38 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
 .ofz-goal-form{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 #savings52HistoryList p{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .savings52-footer .btn{min-height:42px}
+
+.planner-fold>summary{font-family:Georgia,serif;font-size:clamp(22px,3vw,29px);font-weight:500;cursor:pointer;padding:10px 0;color:var(--text);line-height:1.4}
+.planner-fold>summary .badge{font-family:inherit;font-size:12px;margin-left:10px}
+.planner-fold-body{padding-top:14px}
+#mandatory>.planner-fold-body>.card,#habits>.planner-fold-body>.card{padding:0;margin:0;border:0;background:transparent;box-shadow:none}
+.salary-inline-share{margin-top:8px}
+.salary-share-track{height:9px;background:var(--month-soft,var(--panel));border-radius:999px;overflow:hidden}
+.salary-share-track>span{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .2s ease}
+.salary-inline-share>.small{display:block;font-size:11px;margin-top:5px}
+.salary-table td:first-child{min-width:180px}
+.finance-year-block{margin:18px 0;padding:16px;border:1px solid var(--line);border-radius:24px;background:var(--panel-strong)}
+.finance-year-picker{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.finance-year-picker select{padding:9px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text)}
+.finance-month,.finance-annual{border:1px solid var(--line);border-radius:20px;padding:14px;margin-top:12px;background:var(--panel)}
+.finance-month>summary{font-size:22px}.finance-month>summary>.small{display:block;font-family:inherit;font-size:12px;margin-top:6px}
+.finance-annual{border-color:var(--accent)}
+.finance-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.finance-column{min-width:0}
+.finance-column h4{font-family:Georgia,serif;font-weight:500;font-size:23px;margin:6px 0 12px}
+.finance-table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+.finance-table th,.finance-table td{padding:10px;border-bottom:1px solid var(--line);text-align:left;overflow-wrap:anywhere}
+.finance-table td:last-child{text-align:right;white-space:nowrap}
+.finance-table tfoot{font-weight:700}
+.finance-pie{display:grid;grid-template-columns:minmax(100px,170px) minmax(0,1fr);gap:12px;align-items:center;padding-top:16px}
+.finance-pie svg{width:100%;height:auto}
+.finance-pie ul{list-style:none;margin:0;padding:0;display:grid;gap:7px;font-size:11px}
+.finance-pie li{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:6px;align-items:start}
+.finance-swatch{width:10px;height:10px;display:inline-block;border-radius:3px;margin-top:2px}
+.finance-pie-empty{border:1px dashed var(--line);border-radius:18px;padding:20px;color:var(--muted);text-align:center;margin-top:14px;font-size:13px}
+@media(max-width:850px){.finance-pair{grid-template-columns:1fr}.finance-pie{grid-template-columns:130px minmax(0,1fr)}}
+@media(max-width:400px){.finance-pie{grid-template-columns:1fr}.finance-pie svg{width:150px;justify-self:center}}
+@media(prefers-reduced-motion:reduce){.salary-share-track>span{transition:none}}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -664,8 +696,9 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
         <div><h2>📅 Неделя</h2><div class="sub" id="weekPeriodLabel">Вся неделя перед глазами</div></div>
         <button class="btn" id="clearWeekBtn">Новая неделя</button>
       </div>
-      <div class="day-card monthly-goal-box" id="monthlyGoalBox">
-        <div class="row-between"><h3>🎯 Цели на месяц</h3><span class="badge" id="monthlyGoalPeriod"></span></div>
+      <details id="goals" class="card planner-fold" data-fold-key="yearGoals" open><summary>🎯 Цели на год <span class="badge" id="yearGoalCount">Выполнено 0 из 0</span></summary><div class="planner-fold-body"><div class="row-between"><strong>Мои цели</strong><button class="btn secondary big" id="addYearGoal">+ Добавить цель</button></div><div id="yearGoals"></div></div></details>
+<details id="monthlyGoalBox" class="day-card monthly-goal-box planner-fold" data-fold-key="monthlyGoals" open><summary>🎯 Цели на месяц <span class="badge" id="monthlyGoalPeriod"></span></summary><div class="planner-fold-body">
+        
         <p class="small">Выбери до трёх целей из общего списка или добавь новую здесь. Изменения названий появятся автоматически.</p>
         <div class="monthly-goal-selects">
           <select id="monthlyGoalFirst" aria-label="Первая цель на месяц"></select>
@@ -684,7 +717,7 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
 <div id="helperPaymentColumns" class="helper-payment-columns"></div>
 <p class="small">Это список распределения выплат. Сами расходы записывай в «Казне → Расходы».</p>
 </details>
-      </div>
+      </div></details>
       <details class="inbox-panel day-card" open>
         <summary>📥 Входящие <span id="inboxCount"></span></summary>
         <p class="small">Запиши дело сейчас — день можно выбрать позже.</p>
@@ -704,9 +737,9 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
         </form>
       </dialog>
     </div>
-  <div id="mandatory" class="week-extra-section">
+  <details id="mandatory" class="card planner-fold" data-fold-key="mandatory" open><summary>✅ Обязательное на месяц</summary><div class="planner-fold-body">
 <div class="card">
-  <div class="section-title"><div><h2>✅ Обязательное на месяц</h2><div class="sub">Одна галочка — одно выполнение, без привязки к дню.</div></div></div>
+  
   <div class="month-nav"><button id="mandatoryPrev" class="btn ghost" aria-label="Предыдущий месяц">←</button><strong id="mandatoryMonthTitle"></strong><button id="mandatoryNext" class="btn ghost" aria-label="Следующий месяц">→</button><button id="mandatoryToday" class="btn secondary">Текущий месяц</button></div>
   <form id="mandatoryAddForm" class="mandatory-add"><input id="mandatoryName" class="text-input" aria-label="Название активности" placeholder="Добавить активность…" required maxlength="300"><label>Раз в месяц <input id="mandatoryCount" type="number" min="1" max="100" step="1" value="4" required></label><button class="btn" type="submit">Добавить</button></form>
   <p class="small" id="mandatoryMonthHint"></p>
@@ -714,13 +747,10 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
   <p class="small" id="mandatorySummary"></p>
 </div>
 
-</div>
-<div id="habits" class="week-extra-section">
+</div></details>
+<details id="habits" class="card planner-fold" data-fold-key="habits" open><summary>🌱 Привычки</summary><div class="planner-fold-body">
     <div class="card">
-      <div class="section-title">
-        <div><h2>🌱 Привычки</h2><div class="sub">Сегодняшние привычки и твой прогресс за месяц и год</div></div>
-        <button class="btn" id="addHabitBtn">+ Привычка</button>
-      </div>
+      <div class="row-between"><span class="small">Сегодня и прогресс за месяц и год</span><button class="btn" id="addHabitBtn">+ Привычка</button></div>
       <div class="habit-summary-list" id="habitProgress" aria-label="Прогресс по привычкам"></div>
       <div class="habit-today-heading">
         <strong id="habitTodayDate">Сегодня</strong>
@@ -734,22 +764,13 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
       </div>
       <div class="small habit-hint">Учитываются все сохранённые галочки, включая прошлые дни. Сегодняшняя отметка автоматически обновляет проценты.</div>
     </div>
-  </div>
+  </div></details>
 </section>
 
   
 
   
-<section id="goals" class="view">
-    <div class="card">
-      <div class="section-title">
-        <div><h2>🎯 Цели</h2><div class="sub">Мои цели на год</div></div>
-        <span class="badge" id="yearGoalCount">Выполнено 0 из 0</span>
-      </div>
-      <div class="row-between"><strong>Цели на год</strong><button class="btn secondary big" id="addYearGoal">+ Добавить цель</button></div>
-      <div id="yearGoals"></div>
-    </div>
-  </section>
+
 
 
   <section id="treasury" class="view">
@@ -766,6 +787,7 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
       </div>
       <div id="treasury-overview" class="budget-card">
 <div class="month-nav"><button id="overviewPrev" class="btn ghost" aria-label="Предыдущий месяц обзора">←</button><strong id="overviewTitle"></strong><button id="overviewNext" class="btn ghost" aria-label="Следующий месяц обзора">→</button><input id="overviewPicker" type="month" aria-label="Месяц обзора"><button id="overviewToday" class="btn secondary">Текущий месяц</button></div>
+<details class="planner-fold finance-year-block" data-fold-key="financeYear" open><summary>Доходы и расходы · по месяцам и за год</summary><div class="planner-fold-body"><label class="finance-year-picker">Год <select id="financeYearPicker" aria-label="Год доходов и расходов"></select></label><div id="financeYearContent"></div></div></details>
 <div id="overviewKpis" class="budget-kpis"></div><p class="small" id="overviewNote"></p>
 <h3>Доход и фактические расходы по месяцам</h3><div class="budget-legend"><span class="budget-plan-key">● Доход</span><span class="budget-actual-key">● Расходы</span></div><div id="overviewChart" class="budget-chart-scroll"></div>
 <div class="budget-summary">
@@ -776,7 +798,7 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
 <p class="small">Изменение факта сравнивается с предыдущим календарным месяцем, только когда оба месяца завершены. Текущий месяц ещё неполный.</p>
 <details class="budget-chart-panel budget-dynamics"><summary>Динамика плана и расходов</summary><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span></div><div id="budgetTrendChart" class="budget-chart-scroll"></div></details>
 <h4>Категории по месяцам</h4><div class="scrollbox" tabindex="0" aria-label="Сводка категорий по месяцам"><table class="budget-table budget-summary-table"><thead id="budgetSummaryCategoriesHead"></thead><tbody id="budgetSummaryCategories"></tbody><tfoot id="budgetSummaryCategoriesFoot"></tfoot></table></div>
-<div class="budget-chart-panel"><h3>План и факт по категориям за выбранные месяцы</h3><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span><span class="budget-over-key">● Перерасход</span></div><div id="budgetSummaryCategoryChart" class="budget-chart-scroll"></div></div>
+<details class="budget-chart-panel planner-fold" data-fold-key="categoryYear"><summary>План и факт по категориям за выбранные месяцы</summary><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span><span class="budget-over-key">● Перерасход</span></div><div id="budgetSummaryCategoryChart" class="budget-chart-scroll"></div></details>
 </div>
 </div>
 <div id="treasury-expenses" class="budget-card" style="display:none">
@@ -802,10 +824,10 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
 <div class="scrollbox"><table class="salary-table"><thead><tr><th>Источник</th><th>Сумма, ₽</th><th>Удалить</th></tr></thead><tbody id="salaryRows"></tbody></table></div>
 <form id="salaryAddForm" class="salary-add"><input id="salaryNewName" class="text-input" placeholder="Новый источник дохода…" aria-label="Новый источник дохода" maxlength="200" required><button type="submit" class="btn secondary">+ Источник</button></form>
 <p id="salaryMessage" class="small" role="status"></p>
-<div class="salary-chart-panel"><h3>Доход по источникам</h3><div id="salarySourcesChart" class="salary-chart-scroll"></div></div>
-<div class="salary-chart-panel"><h3>История зарплаты по месяцам</h3><p class="small">Текущий месяц ещё неполный. Прочерк означает, что суммы пока не внесены. Для изменения месяца используй стрелки или выбор месяца сверху.</p>
+
+<details class="salary-chart-panel planner-fold" data-fold-key="salaryHistory"><summary>История зарплаты по месяцам</summary><p class="small">Текущий месяц ещё неполный. Прочерк означает, что суммы пока не внесены. Для изменения месяца используй стрелки или выбор месяца сверху.</p>
 <div class="scrollbox"><table class="salary-table salary-history-table"><thead><tr><th>Месяц</th><th>Доход</th><th>Заполнено источников</th></tr></thead><tbody id="salaryHistoryRows"></tbody></table></div>
-<div id="salaryHistoryChart" class="salary-chart-scroll"></div></div>
+<div id="salaryHistoryChart" class="salary-chart-scroll"></div></details>
 </div>
 <div id="treasury-payments" style="display:none">
         <div class="row-between payments-section-heading">
@@ -839,22 +861,7 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
     </div>
   </section>
 
-  <section id="body" class="view">
-    <div class="card">
-      <div class="section-title">
-        <div><h2>🧍 Тело</h2><div class="sub">Контрольные точки 01.09.2026 — 01.12.2027</div></div>
-      </div>
-      <label class="small">Заметки</label>
-      <textarea id="bodyNotes" class="notes-box" placeholder="Как себя чувствуешь, что изменилось, что хочется отметить?"></textarea>
-      <div class="scrollbox" style="margin-top:12px">
-        <table class="body-table">
-          <thead><tr><th>Дата</th><th>Вес, кг</th><th>Грудь, см</th><th>Талия, см</th><th>Бёдра, см</th></tr></thead>
-          <tbody id="bodyRows"></tbody>
-        </table>
-      </div>
-      <div class="small" style="margin-top:8px">Все введённые значения сохраняются автоматически.</div>
-    </div>
-  </section>
+  
 
   <section id="savings52" class="view"><div class="card savings52-card">
 <div class="treasury-tabs"><button class="btn" data-savings-panel="pots">Мои копилки</button><button class="btn secondary" data-savings-panel="ofz">Мои ОФЗ</button></div>
@@ -889,14 +896,30 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
 <dialog id="ofzDialog" class="week-dialog"><form id="ofzForm"><div class="row-between"><h3 id="ofzDialogTitle">Добавить ОФЗ</h3><button id="ofzClose" type="button" class="btn ghost" aria-label="Закрыть">×</button></div>
 <div class="plant-form-grid"><label>Номер выпуска<input id="ofzCode" type="text" maxlength="30" placeholder="Например, 262…" required></label><label>Счёт / брокер<input id="ofzAccount" type="text" maxlength="100" placeholder="Например, ИИС Сбер"></label><label>Количество, шт.<input id="ofzQuantity" type="number" min="0" max="10000000" step="1" value="0" required></label><label>Купон на 1 облигацию за выплату, ₽<input id="ofzCoupon" type="text" inputmode="decimal" required></label><label>Срок / погашение<input id="ofzMaturity" type="text" maxlength="100" placeholder="Дата или твоя заметка"></label><fieldset id="ofzPaymentMonths"><legend>Месяцы купонных выплат</legend></fieldset></div><p id="ofzFormMessage" class="small" role="status"></p><div class="week-transfer-actions"><button id="ofzCancel" type="button" class="btn ghost">Отмена</button><button class="btn" type="submit">Сохранить</button></div></form></dialog>
 </div></section>
-<section id="plants" class="view">
+
+<section id="misc" class="view"><div id="body" class="misc-block">
+    <div class="card">
+      <div class="section-title">
+        <div><h2>🧍 Тело</h2><div class="sub">Контрольные точки 01.09.2026 — 01.12.2027</div></div>
+      </div>
+      <label class="small">Заметки</label>
+      <textarea id="bodyNotes" class="notes-box" placeholder="Как себя чувствуешь, что изменилось, что хочется отметить?"></textarea>
+      <div class="scrollbox" style="margin-top:12px">
+        <table class="body-table">
+          <thead><tr><th>Дата</th><th>Вес, кг</th><th>Грудь, см</th><th>Талия, см</th><th>Бёдра, см</th></tr></thead>
+          <tbody id="bodyRows"></tbody>
+        </table>
+      </div>
+      <div class="small" style="margin-top:8px">Все введённые значения сохраняются автоматически.</div>
+    </div>
+  </div><div id="plants" class="misc-block">
 <div class="card"><div class="section-title"><div><h2>🌿 Домашние растения</h2><div class="sub">Мой домашний сад: коротко об уходе и место для своих наблюдений</div></div><button class="btn plant-plus" id="addPlant" aria-label="Добавить растение" title="Добавить растение">+</button></div>
 <p class="small">Иллюстрации показывают типичный вид, а не точную копию твоего растения. Полив зависит от просыхания грунта, света и сезона.</p>
 <div id="plantsGrid" class="plants-grid"></div></div>
 <dialog id="plantDialog" class="week-dialog"><form id="plantForm"><div class="row-between"><h3 id="plantDialogTitle">Новое растение</h3><button id="closePlantDialog" class="btn ghost" type="button" aria-label="Закрыть">×</button></div>
 <div class="plant-form-grid"><label>Название<input type="text" id="plantField-name" maxlength="200" required></label><label>Вид / сорт<input type="text" id="plantField-botanical" maxlength="200"></label><label>Кратко о растении<textarea id="plantField-about" rows="2" maxlength="2000"></textarea></label><label>Свет<textarea id="plantField-light" rows="2" maxlength="2000"></textarea></label><label>Полив<textarea id="plantField-water" rows="2" maxlength="2000"></textarea></label><label>Температура и воздух<textarea id="plantField-climate" rows="2" maxlength="2000"></textarea></label><label>Подкормка<textarea id="plantField-feeding" rows="2" maxlength="2000"></textarea></label><label>Грунт и пересадка<textarea id="plantField-repot" rows="2" maxlength="2000"></textarea></label><label>Мои заметки<textarea id="plantField-notes" rows="2" maxlength="2000"></textarea></label>
 <label>Своё фото (необязательно)<input id="plantPhoto" type="file" accept="image/*"></label></div><p class="small" id="plantFormMessage" role="status"></p><div class="week-transfer-actions"><button id="cancelPlantDialog" class="btn ghost" type="button">Отмена</button><button class="btn" id="savePlant" type="submit">Сохранить</button></div></form></dialog>
-</section>
+</div></section>
 <section id="settings" class="view">
     <div class="card">
       <div class="section-title"><div><h2>⚙️ Настройки</h2><div class="sub">Оформление, размер и данные</div></div></div>
@@ -968,12 +991,10 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
 <nav class="tabbar">
   <button class="navbtn active" data-view="week"><span>📅</span><span>Неделя</span></button>
 
-
-  <button class="navbtn" data-view="goals"><span>🎯</span><span>Цели</span></button>
   <button class="navbtn" data-view="treasury"><span>💰</span><span>Казна</span></button>
   <button class="navbtn" data-view="savings52" aria-label="Копилки и ОФЗ"><span>🐷</span><span>Копилки</span></button>
-  <button class="navbtn" data-view="plants" aria-label="Домашние растения" title="Домашние растения"><span>🌿</span><span>Растения</span></button>
-  <button class="navbtn" data-view="body"><span>🧍</span><span>Тело</span></button>
+
+  <button class="navbtn" data-view="misc"><span>🧺</span><span>Прочее</span></button>
 
 </nav>
 <dialog id="paymentExpenseDialog" class="week-dialog"><form id="paymentExpenseForm">
@@ -1782,7 +1803,7 @@ function renderSalaryCharts(){
   const record=state.salaryMonths[salaryPeriod],totals=salaryMonthTotals(record);
   document.getElementById('salaryTotal').textContent=totals.filled?budgetMoney(totals.total):'—';
   document.getElementById('salaryFilled').textContent='Суммы внесены: '+totals.filled+' из '+totals.count;
-  document.getElementById('salarySourcesChart').innerHTML=salaryBarsSvg(record.sources);
+  refreshSalarySourceBars(record);
   const current=monthlyFocusPeriod().key;
   const months=Object.keys(state.salaryMonths).sort().map(key=>({key,...salaryMonthTotals(state.salaryMonths[key])}));
   document.getElementById('salaryHistoryRows').innerHTML=months.map(month=>'<tr><th scope="row">'+mandatoryMonthTitle(month.key)+(month.key===current?' · текущий':month.key>current?' · будущий':'')+'</th><td>'+(month.filled?budgetMoney(month.total):'—')+'</td><td>'+month.filled+' / '+month.count+'</td></tr>').join('');
@@ -1798,6 +1819,7 @@ function renderSalaryMonth(){
   record.sources.forEach((source,index)=>{
     const row=document.createElement('tr'),nameCell=document.createElement('td'),name=document.createElement('input');name.type='text';name.value=source.name;name.maxLength=200;name.setAttribute('aria-label','Название источника дохода');
     name.oninput=()=>{source.name=name.value;save();renderSalaryCharts()};nameCell.appendChild(name);
+    const share=document.createElement('div');share.className='salary-inline-share';share.innerHTML='<div class="salary-share-track"><span id="salaryShareFill-'+index+'"></span></div><span class="small" id="salaryShareLabel-'+index+'"></span>';nameCell.appendChild(share);
     const amountCell=document.createElement('td'),amount=document.createElement('input');amount.type='text';amount.inputMode='decimal';amount.placeholder='Сумма';amount.value=source.amountCents==null?'':String(source.amountCents/100);amount.setAttribute('aria-label','Доход от '+source.name+' за месяц');
     amount.oninput=()=>{
       if(salarySetAmount(source,amount.value)){amount.removeAttribute('aria-invalid');document.getElementById('salaryMessage').textContent='';save();renderSalaryCharts()}
@@ -1901,6 +1923,8 @@ document.getElementById('resetBtn').onclick=()=>{if(confirm('Удалить вс
 
 /* NAV */
 function openPlannerView(view){
+  if(view==='body'||view==='plants')view='misc';
+  if(view==='goals')view='week';
   if(view==='mandatory'||view==='habits')view='week';
   if(view==='week')openCurrentMandatoryMonth();
   if(view==='treasury')openTreasuryOverview();
@@ -2272,6 +2296,7 @@ function renderTreasuryOverview(){
   const keys=[...new Set([...Object.keys(state.salaryMonths||{}),...Object.keys(state.expenseBudgets||{})])].sort();
   const rows=keys.map(key=>{const d=treasuryOverviewData(key);return {name:mandatoryMonthTitle(key),plan:d.income,actual:d.actual}});
   document.getElementById('overviewChart').innerHTML=rows.length?budgetSvgBars(rows,'Внесённые доходы и фактические расходы по месяцам','доход','расходы'):'<p class="small">Внеси доходы и расходы — здесь появится сравнение.</p>';
+  renderFinanceYear();
 }
 document.getElementById('overviewPrev').onclick=()=>{overviewPeriod=shiftMandatoryMonth(overviewPeriod,-1);renderTreasuryOverview()};
 document.getElementById('overviewNext').onclick=()=>{overviewPeriod=shiftMandatoryMonth(overviewPeriod,1);renderTreasuryOverview()};
@@ -2694,8 +2719,89 @@ document.getElementById('ofzGoalForm').onsubmit=e=>{
   ensureOfzYear(ofzYear).goalCents=goal;save();renderOfzYear();document.getElementById('ofzGoalError').textContent='Цель сохранена.';toast('Цель по ОФЗ сохранена');
 };
 
+
+/* Local folding preferences never change planner data or trigger cloud writes. */
+function bindPlannerFolds(){
+  document.querySelectorAll('details[data-fold-key]').forEach(details=>{
+    if(details.dataset.foldBound)return;
+    const key='magic-planner-fold:'+details.dataset.foldKey;
+    try{const saved=localStorage.getItem(key);if(saved!==null)details.open=saved==='open'}catch(error){}
+    details.dataset.foldBound='true';
+    details.addEventListener('toggle',()=>{try{localStorage.setItem(key,details.open?'open':'closed')}catch(error){}});
+  });
+}
+function refreshSalarySourceBars(record){
+  const total=salaryMonthTotals(record).total;
+  record.sources.forEach((source,index)=>{
+    const amount=source.amountCents??0,percent=total?amount/total*100:0;
+    const fill=document.getElementById('salaryShareFill-'+index),label=document.getElementById('salaryShareLabel-'+index);
+    if(fill)fill.style.width=percent+'%';
+    if(label)label.textContent=source.amountCents==null?'Сумма не внесена':budgetMoney(amount)+' · '+new Intl.NumberFormat('ru-RU',{maximumFractionDigits:1}).format(percent)+'% дохода';
+  });
+}
+let financeYear=monthlyFocusPeriod().key.slice(0,4);
+function financeMonthData(key){
+  const salary=state.salaryMonths?.[key],budget=state.expenseBudgets?.[key];
+  const incomes=(salary?.sources||[]).map(source=>({name:source.name||'Без названия',amount:source.amountCents??0})).filter(row=>row.amount>0);
+  const expenses=budget?expenseBudgetTotals(budget).rows.map(row=>({name:row.name,amount:row.actual})):[];
+  return {key,incomes,expenses,income:incomes.reduce((s,r)=>s+r.amount,0),expense:expenses.reduce((s,r)=>s+r.amount,0),hasIncome:!!salary?.sources.some(source=>source.amountCents!==null&&source.amountCents!==undefined),hasExpenses:!!budget?.expenses.length};
+}
+function financeYearData(year){
+  const months=Array.from({length:12},(_,i)=>financeMonthData(year+'-'+String(i+1).padStart(2,'0')));
+  const aggregate=field=>{
+    const map=new Map();months.forEach(month=>month[field].forEach(row=>map.set(row.name,(map.get(row.name)||0)+row.amount)));
+    return Array.from(map,([name,amount])=>({name,amount}));
+  };
+  return {months,incomes:aggregate('incomes'),expenses:aggregate('expenses'),income:months.reduce((s,m)=>s+m.income,0),expense:months.reduce((s,m)=>s+m.expense,0)};
+}
+function financePieColor(index){
+  const amount=35+(index%8)*8;
+  return 'color-mix(in srgb, var('+(index%2?'--text':'--accent')+') '+amount+'%,var(--panel-strong))';
+}
+function financePie(rows,title){
+  const values=rows.filter(row=>row.amount>0),total=values.reduce((s,r)=>s+r.amount,0);
+  if(!total)return '<div class="finance-pie-empty">Пока нет внесённых сумм</div>';
+  let angle=-Math.PI/2;
+  let svg='<svg viewBox="0 0 220 220" role="img" aria-label="'+esc(title)+'"><title>'+esc(title)+'</title>';
+  const legend=[];
+  values.forEach((row,index)=>{
+    const fraction=row.amount/total,end=angle+fraction*Math.PI*2,color=financePieColor(index);
+    const percent=new Intl.NumberFormat('ru-RU',{maximumFractionDigits:1}).format(fraction*100);
+    const tooltip=row.name+': '+budgetMoney(row.amount)+' · '+percent+'%';
+    if(values.length===1)svg+='<circle cx="110" cy="110" r="98" fill="'+color+'"><title>'+esc(tooltip)+'</title></circle>';
+    else{
+      const x1=110+98*Math.cos(angle),y1=110+98*Math.sin(angle),x2=110+98*Math.cos(end),y2=110+98*Math.sin(end);
+      svg+='<path d="M110 110 L'+x1+' '+y1+' A98 98 0 '+(fraction>.5?1:0)+' 1 '+x2+' '+y2+' Z" fill="'+color+'" stroke="var(--panel-strong)" stroke-width="2"><title>'+esc(tooltip)+'</title></path>';
+    }
+    legend.push('<li><span class="finance-swatch" style="background:'+color+'"></span><span>'+esc(row.name)+'</span><strong>'+percent+'%</strong></li>');
+    angle=end;
+  });
+  return '<div class="finance-pie">'+svg+'</svg><ul>'+legend.join('')+'</ul></div>';
+}
+function financeTable(rows,label,total,emptyText){
+  const items=rows.filter(row=>row.amount>0);
+  return '<div class="scrollbox"><table class="finance-table"><thead><tr><th>'+label+'</th><th>Сумма</th></tr></thead><tbody>'+(items.length?items.map(row=>'<tr><th scope="row">'+esc(row.name)+'</th><td>'+budgetMoney(row.amount)+'</td></tr>').join(''):'<tr><td colspan="2">'+emptyText+'</td></tr>')+'</tbody><tfoot><tr><th>Итого</th><td>'+budgetMoney(total)+'</td></tr></tfoot></table></div>';
+}
+function financePair(data,title){
+  return '<div class="finance-pair"><div class="finance-column"><h4>Доходы</h4>'+financeTable(data.incomes,'Источник',data.income,'Доходы не внесены')+financePie(data.incomes,'Доли доходов · '+title)+'</div><div class="finance-column"><h4>Расходы</h4>'+financeTable(data.expenses,'Категория',data.expense,'Расходы не внесены')+financePie(data.expenses,'Доли расходов · '+title)+'</div></div>';
+}
+function renderFinanceYear(){
+  const picker=document.getElementById('financeYearPicker');
+  const years=[...new Set(['2026','2027',financeYear,...Object.keys(state.salaryMonths||{}).map(k=>k.slice(0,4)),...Object.keys(state.expenseBudgets||{}).map(k=>k.slice(0,4))])].sort();
+  picker.innerHTML=years.map(year=>'<option value="'+year+'">'+year+'</option>').join('');picker.value=financeYear;
+  const data=financeYearData(financeYear),current=monthlyFocusPeriod().key;
+  document.getElementById('financeYearContent').innerHTML=data.months.map(month=>{
+    const title=mandatoryMonthTitle(month.key),status=month.key===current?' · текущий':month.key>current?' · будущий':'';
+    const opening=month.key===current?' open':'';
+    return '<details class="finance-month planner-fold" data-fold-key="financeMonth-'+month.key+'"'+opening+'><summary>'+title+status+'<span class="small">Доход '+budgetMoney(month.income)+' · расход '+budgetMoney(month.expense)+'</span></summary><div class="planner-fold-body">'+financePair(month,title)+'</div></details>';
+  }).join('')+'<details class="finance-annual planner-fold" data-fold-key="financeAnnual-'+financeYear+'" open><summary>Итого за '+financeYear+' год</summary><div class="planner-fold-body"><p class="small">Суммируются только внесённые данные. Будущие месяцы не считаются прогнозом дохода или расходов.</p>'+financePair(data,financeYear+' год')+'</div></details>';
+  bindPlannerFolds();
+}
+document.getElementById('financeYearPicker').onchange=e=>{financeYear=e.target.value;renderFinanceYear()};
+
 function renderAll(){
   renderOfzYear();
+  bindPlannerFolds();
   renderSavings52();
   renderHouseplants();
   renderMandatoryMonth();
