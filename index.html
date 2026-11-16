@@ -670,6 +670,14 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
 @media(max-width:850px){.finance-pair{grid-template-columns:1fr}.finance-pie{grid-template-columns:130px minmax(0,1fr)}}
 @media(max-width:400px){.finance-pie{grid-template-columns:1fr}.finance-pie svg{width:150px;justify-self:center}}
 @media(prefers-reduced-motion:reduce){.salary-share-track>span{transition:none}}
+
+.today-card{background:linear-gradient(135deg,var(--panel-strong),var(--month-soft,var(--panel)));border-color:var(--line)}
+.today-card h2{color:var(--text)}
+.today-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px}
+.today-card .task-row{padding:11px 0}
+.weekly-plan-fold{border:1px solid var(--line);border-radius:24px;padding:16px;margin-top:18px;background:var(--panel-strong)}
+.week-plan-heading{margin-bottom:16px;flex-wrap:wrap}
+#todayNewWeek[hidden]{display:none}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -691,11 +699,9 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
   </header>
 
   <section id="week" class="view active">
+<div class="card today-card"><div class="section-title"><div><h2>☀️ Сегодня</h2><div class="sub" id="todayDateLabel"></div></div><button id="addTodayTask" class="btn secondary">+ Задача</button></div><p id="todayWeekNotice" class="small"></p><div id="todayTaskList"></div><div class="today-footer"><span id="todayTaskCount" class="small" aria-live="polite"></span><button id="todayNewWeek" class="btn ghost" hidden>Начать текущую неделю</button></div></div>
     <div class="card">
-      <div class="section-title">
-        <div><h2>📅 Неделя</h2><div class="sub" id="weekPeriodLabel">Вся неделя перед глазами</div></div>
-        <button class="btn" id="clearWeekBtn">Новая неделя</button>
-      </div>
+
       <details id="goals" class="card planner-fold" data-fold-key="yearGoals" open><summary>🎯 Цели на год <span class="badge" id="yearGoalCount">Выполнено 0 из 0</span></summary><div class="planner-fold-body"><div class="row-between"><strong>Мои цели</strong><button class="btn secondary big" id="addYearGoal">+ Добавить цель</button></div><div id="yearGoals"></div></div></details>
 <details id="monthlyGoalBox" class="day-card monthly-goal-box planner-fold" data-fold-key="monthlyGoals" open><summary>🎯 Цели на месяц <span class="badge" id="monthlyGoalPeriod"></span></summary><div class="planner-fold-body">
         
@@ -724,7 +730,7 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
         <form id="inboxForm" class="inbox-form"><input id="inboxText" class="text-input" placeholder="Записать задачу или идею…" aria-label="Новая запись во входящих" required maxlength="2000"><button class="btn" type="submit">Добавить</button></form>
         <div id="inboxList"></div>
       </details>
-      <details class="day-card recurring-panel"><summary>🔁 Повторяющиеся задачи</summary><p class="small">Добавляются в текущую неделю и в каждую новую. Удаление правила не удаляет уже созданные задачи.</p><form id="recurringForm"><input id="recurringText" class="text-input" placeholder="Например: Испанский — 30 минут" aria-label="Название повторяющейся задачи" required maxlength="2000"><fieldset id="recurringDays"><legend>Дни недели</legend></fieldset><button type="submit" class="btn">Добавить повторение</button></form><div id="recurringList"></div></details><div id="weekGrid" class="grid-week"></div>
+      <details class="day-card recurring-panel"><summary>🔁 Повторяющиеся задачи</summary><p class="small">Добавляются в текущую неделю и в каждую новую. Удаление правила не удаляет уже созданные задачи.</p><form id="recurringForm"><input id="recurringText" class="text-input" placeholder="Например: Испанский — 30 минут" aria-label="Название повторяющейся задачи" required maxlength="2000"><fieldset id="recurringDays"><legend>Дни недели</legend></fieldset><button type="submit" class="btn">Добавить повторение</button></form><div id="recurringList"></div></details><details id="weeklyPlanFold" class="planner-fold weekly-plan-fold" data-fold-key="weeklyPlan" open><summary>📅 Планы на неделю</summary><div class="planner-fold-body"><div class="row-between week-plan-heading"><span class="small" id="weekPeriodLabel"></span><button class="btn" id="clearWeekBtn">Новая неделя</button></div><div id="weekGrid" class="grid-week"></div></div></details>
       <details class="week-history"><summary>📚 История недель <span id="weekHistoryCount"></span></summary><div id="weekHistoryList"></div></details>
       <dialog id="newWeekDialog" class="week-dialog">
         <form method="dialog"><div class="row-between"><h3>Новая неделя</h3><button class="btn ghost" value="cancel" aria-label="Закрыть">×</button></div>
@@ -1410,7 +1416,7 @@ function makeTaskGoalSelect(task){
   select.onchange=()=>{
     task.goalId=select.value;
     task.goalTitle=state.yearGoals.find(g=>g.id===task.goalId)?.text||'';
-    save();populateTaskGoalSelect(select,task);
+    save();refreshTaskGoalSelectors();
   };
   return select;
 }
@@ -1515,31 +1521,90 @@ document.getElementById('recurringForm').onsubmit=e=>{
   if(createRecurringTask(input.value,selected)){save();input.value='';renderWeek();toast('Повторение добавлено в текущую и будущие недели')}
 };
 
-function renderWeek(){
-  renderRecurringTasks();
-  renderInbox();
-  ensureWeekMetadata();
-  document.getElementById('weekPeriodLabel').textContent=weekRangeLabel(state.weekStart);
-  renderWeekHistory();
-  renderMonthlyFocus();
-  const g=document.getElementById('weekGrid');g.innerHTML='';
-  days.forEach(day=>{
-    const c=document.createElement('div');c.className='day-card';
-    c.innerHTML=`<div class="day-head"><h3>${day}</h3><button class="icon-btn add">＋</button></div><div class="taskbox"></div>`;
-    const box=c.querySelector('.taskbox');
-    (state.week[day]||[]).forEach((t,i)=>{
-      const r=document.createElement('div');r.className='task-row';
-      r.innerHTML=`<input class="check" type="checkbox" ${t.done?'checked':''}><div class="task-content"><input class="text-input" placeholder="Вписать задачу…" value="${esc(t.text)}"></div><button class="icon-btn del" aria-label="Удалить задачу">×</button>`;
-      r.querySelector('.task-content').appendChild(makeTaskGoalSelect(t));
-      r.querySelector('.check').onchange=e=>{t.done=e.target.checked;save()}
-      r.querySelector('.text-input').oninput=e=>{t.text=e.target.value;save()}
-      r.querySelector('.del').onclick=()=>{deleteWithUndo(state.week[day],i,renderWeek,'Задача удалена')}
-      box.appendChild(r);
-    });
-    c.querySelector('.add').onclick=()=>{state.week[day].push({text:'',done:false});save();renderWeek()}
-    g.appendChild(c);
-  });
+
+let lastTodayPanelDate='',todayDraftIndex=null;
+function todayWeekContext(date=localPlannerDate()){
+  const weekday=(new Date(date+'T12:00:00Z').getUTCDay()+6)%7;
+  const monday=mondayForDate(date);
+  return {date,day:days[weekday],monday,isCurrent:state.weekStart===monday,isPast:state.weekStart<monday};
 }
+function updateTodayCount(){
+  const info=todayWeekContext(),tasks=info.isCurrent?(state.week[info.day]||[]).filter(task=>String(task.text||'').trim()):[];
+  document.getElementById('todayTaskCount').textContent=info.isCurrent?'Выполнено '+tasks.filter(task=>task.done).length+' из '+tasks.length:'';
+}
+function syncWeekTaskViews(day,index,task){
+  document.querySelectorAll('[data-week-task]').forEach(row=>{
+    if(row.dataset.day!==day||Number(row.dataset.index)!==index)return;
+    const check=row.querySelector('input[type=checkbox]'),text=row.querySelector('.week-task-text');
+    if(check)check.checked=!!task.done;
+    if(text&&text.value!==task.text)text.value=task.text;
+  });
+  updateTodayCount();
+}
+function makeWeekTaskRow(day,index,task,fromToday=false){
+  const row=document.createElement('div');row.className='task-row';row.setAttribute('data-week-task','');row.dataset.day=day;row.dataset.index=String(index);
+  const check=document.createElement('input');check.type='checkbox';check.className='check';check.checked=!!task.done;check.setAttribute('aria-label','Выполнено: '+(task.text||'задача'));
+  const content=document.createElement('div');content.className='task-content';
+  const text=document.createElement('input');text.type='text';text.className='text-input week-task-text';text.value=task.text||'';text.placeholder='Вписать задачу…';text.setAttribute('aria-label',fromToday?'Задача на сегодня':'Задача: '+day);
+  text.oninput=()=>{
+    task.text=text.value;save();syncWeekTaskViews(day,index,task);
+    if(!fromToday&&todayWeekContext().isCurrent&&todayWeekContext().day===day)renderTodayPanel();
+  };
+  check.onchange=()=>{task.done=check.checked;save();syncWeekTaskViews(day,index,task)};
+  const goal=makeTaskGoalSelect(task);content.append(text,goal);
+  const remove=document.createElement('button');remove.className='icon-btn del';remove.textContent='×';remove.setAttribute('aria-label','Удалить задачу');
+  remove.onclick=()=>{todayDraftIndex=null;deleteWithUndo(state.week[day],index,renderWeek,'Задача удалена')};
+  row.append(check,content,remove);return row;
+}
+function renderTodayPanel(){
+  ensureWeekMetadata();
+  const info=todayWeekContext();lastTodayPanelDate=info.date;
+  document.getElementById('todayDateLabel').textContent=new Intl.DateTimeFormat('ru-RU',{timeZone:'UTC',weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date(info.date+'T12:00:00Z'));
+  const list=document.getElementById('todayTaskList');list.replaceChildren();
+  document.getElementById('addTodayTask').disabled=!info.isCurrent;
+  const notice=document.getElementById('todayWeekNotice'),rollover=document.getElementById('todayNewWeek');
+  rollover.hidden=info.isCurrent||!info.isPast;
+  if(!info.isCurrent){
+    notice.textContent='Открытый план: '+weekRangeLabel(state.weekStart)+'. '+(info.isPast?'Начни текущую неделю, чтобы её задачи появились здесь.':'Сегодня не входит в открытую неделю. Её задачи не показаны как сегодняшние.');
+  }else{
+    notice.textContent='Задачи из раздела «'+info.day+'» в недельном плане. Изменения и галочки общие.';
+    const tasks=state.week[info.day]||[];
+    tasks.forEach((task,index)=>{if(String(task.text||'').trim()||index===todayDraftIndex)list.appendChild(makeWeekTaskRow(info.day,index,task,true))});
+    if(!list.children.length){const empty=document.createElement('p');empty.className='small';empty.textContent='На сегодня пока нет записанных задач. Добавь их здесь или в недельном плане.';list.appendChild(empty)}
+  }
+  updateTodayCount();
+}
+function renderWeek(){
+  renderRecurringTasks();renderInbox();ensureWeekMetadata();
+  document.getElementById('weekPeriodLabel').textContent=weekRangeLabel(state.weekStart);
+  renderWeekHistory();renderMonthlyFocus();
+  const grid=document.getElementById('weekGrid');grid.replaceChildren();
+  days.forEach(day=>{
+    const card=document.createElement('div');card.className='day-card';
+    const head=document.createElement('div');head.className='day-head';
+    const heading=document.createElement('h3');heading.textContent=day;
+    const add=document.createElement('button');add.className='icon-btn add';add.textContent='＋';add.setAttribute('aria-label','Добавить задачу: '+day);
+    add.onclick=()=>{state.week[day].push({text:'',done:false});save();renderWeek()};
+    head.append(heading,add);card.appendChild(head);
+    const box=document.createElement('div');box.className='taskbox';
+    (state.week[day]||[]).forEach((task,index)=>box.appendChild(makeWeekTaskRow(day,index,task)));
+    card.appendChild(box);grid.appendChild(card);
+  });
+  renderTodayPanel();bindPlannerFolds();
+}
+document.getElementById('addTodayTask').onclick=()=>{
+  const info=todayWeekContext();if(!info.isCurrent){renderTodayPanel();return;}
+  const tasks=state.week[info.day]||(state.week[info.day]=[]);
+  todayDraftIndex=tasks.length;tasks.push({text:'',done:false});save();renderWeek();
+  document.querySelector('#todayTaskList [data-index="'+todayDraftIndex+'"] .week-task-text')?.focus();
+};
+document.getElementById('todayNewWeek').onclick=openNewWeek;
+function refreshTodayPanel(){
+  if(localPlannerDate()!==lastTodayPanelDate){todayDraftIndex=null;renderTodayPanel()}
+}
+setInterval(refreshTodayPanel,60000);
+window.addEventListener('focus',refreshTodayPanel);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshTodayPanel()});
 document.getElementById('clearWeekBtn').onclick=openNewWeek;
 
 /* HABITS - today, month and year progress */
@@ -1926,7 +1991,7 @@ function openPlannerView(view){
   if(view==='body'||view==='plants')view='misc';
   if(view==='goals')view='week';
   if(view==='mandatory'||view==='habits')view='week';
-  if(view==='week')openCurrentMandatoryMonth();
+  if(view==='week'){openCurrentMandatoryMonth();renderTodayPanel()}
   if(view==='treasury')openTreasuryOverview();
   if(view==='mandatory')openCurrentMandatoryMonth();
   document.querySelectorAll('.navbtn').forEach(button=>button.classList.toggle('active',button.dataset.view===view));
