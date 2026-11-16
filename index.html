@@ -396,7 +396,7 @@ body[data-month-art="january"] .btn:not(.secondary):not(.ghost):not(.danger),bod
 .recurring-row{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding:12px 0;gap:12px;overflow-wrap:anywhere}
 #recurringList{margin-top:14px}
 
-.tabbar{grid-template-columns:repeat(5,minmax(0,1fr))}
+.tabbar{grid-template-columns:repeat(6,minmax(0,1fr))}
 .mandatory-add{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:16px 0}
 .mandatory-add>.text-input{flex:1;min-width:170px}
 .mandatory-add label{display:flex;align-items:center;gap:8px;font-size:13px}
@@ -561,6 +561,58 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
 .plant-form-grid{display:grid;gap:12px;margin-top:16px}.plant-form-grid label{display:grid;gap:5px;font-size:13px;color:var(--muted)}
 .plant-form-grid input,.plant-form-grid textarea{width:100%;border:1px solid var(--line);padding:11px;background:var(--panel);color:var(--text);border-radius:14px}
 @media(max-width:620px){.plants-grid{grid-template-columns:1fr}.plant-image{max-height:330px}.plant-content{padding:15px}}
+
+.savings52-form{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin:18px 0}
+.savings52-form label{display:grid;gap:7px;font-size:13px;color:var(--muted);flex:1;min-width:180px}
+.savings52-form input{padding:12px;border:1px solid var(--line);background:var(--panel-strong);color:var(--text);width:100%;border-radius:14px}
+.savings52-progress{margin:18px 0;height:14px}
+.savings52-draw{display:flex;gap:16px;align-items:center;flex-wrap:wrap;padding:14px 0}
+#savings52Picked{font-weight:600;flex:1;min-width:190px}
+.savings52-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-top:18px}
+.savings52-cell{display:grid;gap:9px;justify-items:center;align-content:center;min-height:112px;min-width:0;padding:12px 6px;border:1px solid var(--line);border-radius:22px;background:var(--panel-strong);color:var(--text);box-shadow:0 4px 10px var(--line)}
+.savings52-cell strong{font-size:clamp(13px,1.6vw,20px);overflow-wrap:anywhere}
+.savings52-number{font-size:12px;color:var(--muted)}
+.savings52-cell.savings52-selected{outline:3px solid var(--accent);outline-offset:2px;background:var(--month-soft,var(--panel))}
+.savings52-cell.savings52-done{background:var(--month-soft,var(--panel));box-shadow:none;opacity:.7;cursor:default}
+.savings52-done strong,.savings52-done .savings52-number{text-decoration:line-through;text-decoration-thickness:2px}
+.savings52-cell:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.savings52-footer{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px}
+.savings52-card button:disabled{cursor:default}
+.savings52-draw button:disabled{opacity:.65}
+@media(max-width:850px){.savings52-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:520px){.savings52-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.savings52-cell{min-height:105px;padding:10px 5px;border-radius:18px}.tabbar .navbtn{font-size:10px}}
+
+/* The savings challenge uses only live planner tokens, so every month recolours it. */
+.savings52-card{padding:clamp(16px,3vw,30px);--s52-soft:var(--month-soft,var(--panel-strong));--s52-ink:var(--text)}
+.savings52-hero{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:clamp(20px,4vw,36px);border:1px solid var(--line);border-radius:28px;overflow:hidden;position:relative;background:linear-gradient(135deg,var(--panel-strong),var(--s52-soft));isolation:isolate}
+.savings52-hero::after{content:"";position:absolute;width:260px;height:260px;border:1px solid var(--line);border-radius:50%;right:-70px;top:-95px;z-index:-1;box-shadow:0 0 0 24px color-mix(in srgb,var(--accent) 5%,transparent),0 0 0 55px color-mix(in srgb,var(--accent) 3%,transparent)}
+.savings52-eyebrow{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.savings52-hero h2{font-family:Georgia,serif;font-size:clamp(34px,5vw,54px);font-weight:400;margin:12px 0 8px;color:var(--text)}
+.savings52-hero h2 span{color:var(--accent)}
+.savings52-hero p{margin:0;color:var(--muted);line-height:1.6}
+.savings52-hero-tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:18px}
+.savings52-hero-tags span{font-size:11px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--muted)}
+.savings52-emblem{width:130px;height:130px;flex-shrink:0;display:grid;place-items:center;padding:16px;color:var(--accent);border-radius:36px;border:1px solid var(--line);background:var(--panel-strong);box-shadow:0 12px 26px color-mix(in srgb,var(--accent) 12%,transparent),inset 0 1px 0 var(--panel)}
+.savings52-emblem svg{width:100%;height:100%}
+.savings52-form{padding:18px;border-radius:22px;border:1px solid var(--line);background:var(--s52-soft)}
+.savings52-card .budget-kpi{border-radius:22px;box-shadow:0 5px 18px color-mix(in srgb,var(--accent) 6%,transparent)}
+.savings52-card .budget-kpi:nth-child(2){border-color:var(--accent);background:linear-gradient(145deg,var(--panel-strong),var(--s52-soft))}
+.savings52-card .budget-kpi strong{font-variant-numeric:tabular-nums}
+.savings52-progress{height:16px;padding:3px;border:1px solid var(--line);background:var(--s52-soft)}
+.savings52-progress>span{border-radius:999px;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 65%,var(--panel-strong)),var(--accent));transition:width .35s ease}
+.savings52-draw{padding:18px;border-radius:22px;background:var(--s52-soft);border:1px solid var(--line)}
+.savings52-draw .btn{border-radius:18px;box-shadow:0 4px 0 color-mix(in srgb,var(--accent) 60%,var(--text)),0 8px 18px color-mix(in srgb,var(--accent) 15%,transparent);transition:transform .15s ease,box-shadow .15s ease}
+.savings52-draw .btn:not(:disabled):active{transform:translateY(3px);box-shadow:0 1px 0 var(--accent)}
+.savings52-cell{position:relative;min-height:128px;align-content:center;border-radius:24px;background:linear-gradient(155deg,var(--panel-strong) 25%,var(--s52-soft));border:1px solid var(--line);box-shadow:0 5px 0 var(--line),0 9px 15px color-mix(in srgb,var(--accent) 7%,transparent),inset 0 1px 0 var(--panel);transition:transform .16s ease,box-shadow .16s ease}
+.savings52-number{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;line-height:1;background:var(--panel);border:1px solid var(--line);color:var(--muted)}
+.savings52-cell>strong{font-family:Georgia,serif;font-weight:500;font-size:clamp(17px,2vw,23px);font-variant-numeric:tabular-nums}
+.savings52-cell .small{font-size:10px;min-height:14px}
+.savings52-cell.savings52-selected{outline:3px solid var(--accent);outline-offset:3px;box-shadow:0 5px 0 var(--accent),0 12px 24px color-mix(in srgb,var(--accent) 18%,transparent);background:var(--s52-soft)}
+.savings52-cell.savings52-done{opacity:.62;box-shadow:inset 0 2px 5px color-mix(in srgb,var(--text) 7%,transparent);border-style:dashed;background:var(--s52-soft)}
+.savings52-done .small{color:var(--text)}
+@media(hover:hover){.savings52-cell:not(:disabled):hover{transform:translateY(-3px);border-color:var(--accent)}}
+@media(max-width:520px){.savings52-hero{gap:8px;padding:20px 16px}.savings52-emblem{width:78px;height:90px;padding:9px;border-radius:25px}.savings52-hero-tags span{font-size:10px;padding:5px 7px}.savings52-card .budget-kpis{grid-template-columns:1fr}.savings52-cell{min-height:115px;border-radius:19px}.savings52-cell>strong{font-size:17px}.savings52-draw{padding:14px}.savings52-form{padding:14px}}
+@media(prefers-reduced-motion:reduce){.savings52-cell,.savings52-progress>span,.savings52-draw .btn{transition:none}}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -779,7 +831,24 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
     </div>
   </section>
 
-  <section id="plants" class="view">
+  <section id="savings52" class="view"><div class="card savings52-card">
+<div class="savings52-hero">
+<div class="savings52-hero-copy"><span id="savings52Season" class="savings52-eyebrow"></span><h2>Копилка <span>52</span></h2><p>Маленькие шаги к большой цели</p><div class="savings52-hero-tags"><span>52 ячейки</span><span>Разные суммы</span><span>Твой темп</span></div></div>
+<div class="savings52-emblem" aria-hidden="true"><svg viewBox="0 0 120 120" fill="none"><path d="M29 49c8-14 24-21 41-16l15-9 2 20c8 5 13 13 14 22h9v19h-14l-7 16H76l-3-12H49l-5 12H31l-1-19c-9-7-12-17-8-27-10 2-14-2-12-9 1-4 6-6 10-3" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M49 39h18M55 11v13" stroke="currentColor" stroke-width="4.5" stroke-linecap="round"/><circle cx="85" cy="59" r="3" fill="currentColor"/><circle cx="55" cy="11" r="8" stroke="currentColor" stroke-width="3"/></svg></div>
+</div>
+<form id="savings52Form" class="savings52-form"><label>Хочу накопить, ₽<input id="savings52Target" type="text" inputmode="decimal" placeholder="Например, 52 000" required aria-label="Целевая сумма накопления"></label><button class="btn" type="submit">Создать 52 ячейки</button></form>
+<p class="small" id="savings52Message" role="status"></p>
+<div id="savings52Active" hidden>
+<div id="savings52Stats" class="budget-kpis" aria-live="polite"></div>
+<div class="progress savings52-progress" role="progressbar" aria-label="Прогресс накопления" id="savings52Progress"><span id="savings52ProgressFill"></span></div>
+<div class="savings52-draw"><button class="btn big" id="savings52Draw">🎲 Выбрать ячейку</button><div id="savings52Picked" role="status" aria-live="polite"></div></div>
+<p class="small">Положи указанную сумму в копилку и нажми на ячейку — она зачеркнётся. Можно выбрать ячейку вручную. Случайно выбранная ячейка остаётся выбранной до отметки; повторно закрытые ячейки не выпадают.</p>
+<div id="savings52Grid" class="savings52-grid"></div>
+<div class="savings52-footer"><button id="savings52Undo" class="btn ghost">Отменить последнюю отметку</button><span class="small">Отмечай только реально отложенные суммы.</span></div>
+</div>
+<details id="savings52History" class="week-history" hidden><summary>Прошлые копилки</summary><div id="savings52HistoryList"></div></details>
+</div></section>
+<section id="plants" class="view">
 <div class="card"><div class="section-title"><div><h2>🌿 Домашние растения</h2><div class="sub">Мой домашний сад: коротко об уходе и место для своих наблюдений</div></div><button class="btn plant-plus" id="addPlant" aria-label="Добавить растение" title="Добавить растение">+</button></div>
 <p class="small">Иллюстрации показывают типичный вид, а не точную копию твоего растения. Полив зависит от просыхания грунта, света и сезона.</p>
 <div id="plantsGrid" class="plants-grid"></div></div>
@@ -861,6 +930,7 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
 
   <button class="navbtn" data-view="goals"><span>🎯</span><span>Цели</span></button>
   <button class="navbtn" data-view="treasury"><span>💰</span><span>Казна</span></button>
+  <button class="navbtn" data-view="savings52" aria-label="Копилка 52"><span>🐷</span><span>Копилка 52</span></button>
   <button class="navbtn" data-view="plants" aria-label="Домашние растения" title="Домашние растения"><span>🌿</span><span>Растения</span></button>
   <button class="navbtn" data-view="body"><span>🧍</span><span>Тело</span></button>
 
@@ -904,6 +974,7 @@ const defaults={
   salaryMonths:{},
   salaryPaymentHelper:{},
   houseplants:null,
+  savings52:{active:null,history:[]},
   treasury:{
     selectedYear:2026,selectedMonth:8,
     months:{},
@@ -1747,6 +1818,7 @@ document.getElementById('bodyNotes').oninput=e=>{state.body.notes=e.target.value
 /* SETTINGS */
 const monthlyArtNames=["january","february","march","april","may","june","july","august","september","october","november","december"];
 function applyMonthlyTheme(){
+  if(document.getElementById('savings52Season'))document.getElementById('savings52Season').textContent=monthlyFocusPeriod().label+' · моя копилка';
   const automatic=state.settings.monthlyTheme!==false;
   const img=document.getElementById('monthArtImage');
   if(!automatic){delete document.body.dataset.monthArt;img.removeAttribute('src');return;}
@@ -2293,7 +2365,113 @@ document.getElementById('plantForm').onsubmit=async e=>{
   finally{button.disabled=false}
 };
 
+
+/* 52 strictly positive distinct amounts in integer kopecks, with an exact target sum. */
+function savings52Shuffle(values,random=Math.random){
+  const result=values.slice();
+  for(let i=result.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[result[i],result[j]]=[result[j],result[i]]}
+  return result;
+}
+function savings52Amounts(total,random=Math.random){
+  if(!Number.isSafeInteger(total)||total<1378||total>100000000000)return null;
+  const unit=[10000,1000,100,1].find(unit=>total>=1378*unit);
+  const extra=total-1378*unit,baseExtra=Math.floor(extra/(52*unit))*unit;
+  const remainder=extra-baseExtra*52,units=Math.floor(remainder/unit),last=remainder%unit;
+  const values=Array.from({length:52},(_,i)=>(i+1)*unit+baseExtra+(i>=52-units?unit:0)+(i===51?last:0));
+  return savings52Shuffle(values,random);
+}
+function savings52Create(total){
+  const amounts=savings52Amounts(total);if(!amounts)return null;
+  return {id:crypto.randomUUID(),targetCents:total,createdAt:new Date().toISOString(),cells:amounts.map((amountCents,index)=>({number:index+1,amountCents,done:false,paidDate:''})),order:savings52Shuffle(Array.from({length:52},(_,i)=>i)),cursor:0,pending:null,marks:[]};
+}
+function savings52Totals(challenge){
+  const done=challenge.cells.filter(cell=>cell.done);
+  const saved=done.reduce((sum,cell)=>sum+cell.amountCents,0);
+  return {saved,count:done.length,remaining:challenge.targetCents-saved};
+}
+function savings52Pick(challenge){
+  if(challenge.pending!==null&&!challenge.cells[challenge.pending].done)return challenge.pending;
+  challenge.pending=null;
+  while(challenge.cursor<challenge.order.length){
+    const index=challenge.order[challenge.cursor++];
+    if(!challenge.cells[index].done){challenge.pending=index;return index}
+  }
+  // Only manually undone cells can remain after the draw order is exhausted.
+  const index=challenge.cells.findIndex(cell=>!cell.done);
+  if(index>=0){challenge.pending=index;return index}
+  return null;
+}
+function savings52Mark(challenge,index){
+  const cell=challenge.cells[index];if(!cell||cell.done)return false;
+  cell.done=true;cell.paidDate=localPlannerDate();challenge.marks.push(index);
+  if(challenge.pending===index)challenge.pending=null;
+  return true;
+}
+function savings52UndoMark(challenge){
+  const index=challenge.marks.pop();if(index===undefined)return false;
+  challenge.cells[index].done=false;challenge.cells[index].paidDate='';
+  if(challenge.pending===null)challenge.pending=index;
+  return true;
+}
+function ensureSavings52(){
+  if(!state.savings52||typeof state.savings52!=='object')state.savings52={active:null,history:[]};
+  if(!Array.isArray(state.savings52.history))state.savings52.history=[];
+}
+function renderSavings52(){
+  document.getElementById('savings52Season').textContent=monthlyFocusPeriod().label+' · моя копилка';
+  ensureSavings52();const challenge=state.savings52.active;
+  document.getElementById('savings52Active').hidden=!challenge;
+  document.getElementById('savings52Message').textContent=challenge?'Сумма всех 52 ячеек точно равна цели. Новая цель создаст новую копилку; прежняя останется в истории.':'Впиши цель — суммы распределятся автоматически. Все суммы будут разными и положительными.';
+  if(challenge){
+    const totals=savings52Totals(challenge),percent=totals.saved/challenge.targetCents*100;
+    document.getElementById('savings52Stats').innerHTML=[['Цель',budgetMoney(challenge.targetCents)],['Уже отложено',budgetMoney(totals.saved)],['Осталось',budgetMoney(totals.remaining)]].map(([label,value])=>'<div class="budget-kpi"><span>'+label+'</span><strong>'+value+'</strong></div>').join('');
+    document.getElementById('savings52ProgressFill').style.width=percent+'%';
+    const progress=document.getElementById('savings52Progress');progress.setAttribute('aria-valuemin','0');progress.setAttribute('aria-valuemax','100');progress.setAttribute('aria-valuenow',String(Math.round(percent)));progress.setAttribute('aria-valuetext',totals.count+' из 52 ячеек, '+budgetMoney(totals.saved));
+    const pending=challenge.pending!==null?challenge.cells[challenge.pending]:null;
+    document.getElementById('savings52Picked').textContent=totals.count===52?'Все 52 ячейки закрыты. Цель достигнута!':pending&&!pending.done?'Выпала № '+pending.number+' — '+budgetMoney(pending.amountCents):'Закрыто '+totals.count+' из 52. Выбери следующую ячейку.';
+    const draw=document.getElementById('savings52Draw');draw.disabled=totals.count===52||!!(pending&&!pending.done);draw.textContent=pending&&!pending.done?'Отметь выбранную ячейку':'🎲 Выбрать ячейку';
+    document.getElementById('savings52Undo').disabled=!challenge.marks.length;
+    const grid=document.getElementById('savings52Grid');grid.replaceChildren();
+    challenge.cells.forEach((cell,index)=>{
+      const button=document.createElement('button');button.type='button';button.className='savings52-cell'+(cell.done?' savings52-done':'')+(challenge.pending===index?' savings52-selected':'');
+      button.setAttribute('aria-pressed',String(cell.done));button.setAttribute('aria-label','Ячейка '+cell.number+', '+budgetMoney(cell.amountCents)+(cell.done?', внесено '+cell.paidDate:challenge.pending===index?', выбрана':''));
+      button.disabled=cell.done;
+      const number=document.createElement('span');number.className='savings52-number';number.textContent='№ '+cell.number;
+      const amount=document.createElement('strong');amount.textContent=budgetMoney(cell.amountCents);
+      const status=document.createElement('span');status.className='small';status.textContent=cell.done?'✓ '+cell.paidDate.split('-').reverse().join('.'):challenge.pending===index?'Выбрана':'';
+      button.append(number,amount,status);
+      button.onclick=()=>{if(savings52Mark(challenge,index)){save();renderSavings52()}};
+      grid.appendChild(button);
+    });
+  }
+  const history=state.savings52.history;
+  document.getElementById('savings52History').hidden=!history.length;
+  const list=document.getElementById('savings52HistoryList');list.replaceChildren();
+  history.slice().reverse().forEach(item=>{
+    const totals=savings52Totals(item),row=document.createElement('p');
+    row.textContent='Цель '+budgetMoney(item.targetCents)+' · отложено '+budgetMoney(totals.saved)+' · '+totals.count+'/52 · '+String(item.createdAt).slice(0,10).split('-').reverse().join('.');
+    list.appendChild(row);
+  });
+}
+document.getElementById('savings52Form').onsubmit=e=>{
+  e.preventDefault();
+  const total=budgetParseCents(document.getElementById('savings52Target').value);
+  if(total===null||total<1378){document.getElementById('savings52Message').textContent='Введи сумму от 13,78 ₽: это минимум для 52 разных положительных сумм с точностью до копейки.';return;}
+  const previous=state.savings52.active;
+  if(previous&&!confirm('Создать новую копилку? Текущая копилка с её отметками сохранится в истории.'))return;
+  const challenge=savings52Create(total);if(!challenge)return;
+  if(previous)state.savings52.history.push(clone(previous));
+  state.savings52.active=challenge;save();renderSavings52();document.getElementById('savings52Target').value='';
+};
+document.getElementById('savings52Draw').onclick=()=>{
+  const challenge=state.savings52.active;if(!challenge)return;
+  const selected=savings52Pick(challenge);save();renderSavings52();
+  if(selected!==null)document.getElementById('savings52Grid').children[selected]?.focus();
+};
+document.getElementById('savings52Undo').onclick=()=>{const challenge=state.savings52.active;if(challenge&&savings52UndoMark(challenge)){save();renderSavings52()}};
+
 function renderAll(){
+  renderSavings52();
   renderHouseplants();
   renderMandatoryMonth();
   renderWeek();
