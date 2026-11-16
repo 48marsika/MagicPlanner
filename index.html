@@ -678,6 +678,20 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
 .weekly-plan-fold{border:1px solid var(--line);border-radius:24px;padding:16px;margin-top:18px;background:var(--panel-strong)}
 .week-plan-heading{margin-bottom:16px;flex-wrap:wrap}
 #todayNewWeek[hidden]{display:none}
+
+/* Native scrolling and file picking follow the same monthly theme as the cards. */
+*{scrollbar-width:thin;scrollbar-color:var(--accent) var(--month-soft,var(--panel-strong))}
+*::-webkit-scrollbar{width:10px;height:10px}
+*::-webkit-scrollbar-track{background:var(--month-soft,var(--panel-strong));border-radius:999px}
+*::-webkit-scrollbar-thumb{background:var(--accent);border:2px solid var(--month-soft,var(--panel-strong));border-radius:999px}
+*::-webkit-scrollbar-corner{background:var(--panel-strong)}
+*::-webkit-scrollbar-button{display:none;width:0;height:0}
+body input[type=file]{display:block;width:100%;min-width:0;padding:8px;border:1px solid var(--line);border-radius:16px;background:var(--panel-strong);color:var(--muted);font:inherit;font-size:12px;overflow:hidden}
+body input[type=file]::file-selector-button{font:inherit;cursor:pointer;padding:10px 14px;margin-right:10px;border:1px solid var(--line);border-radius:12px;background:var(--accent);color:var(--on-accent,var(--panel-strong));transition:filter .15s}
+body input[type=file]::file-selector-button:hover{filter:brightness(1.07)}
+body input[type=file]:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.misc-tabs-card{padding:12px 16px}.misc-tabs-card .treasury-tabs{margin-bottom:0;padding-bottom:0}
+@media(prefers-reduced-motion:reduce){body input[type=file]::file-selector-button{transition:none}}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -813,7 +827,7 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
 <p class="small">План можно менять для каждого месяца. Для внезапных трат и праздников план по умолчанию — 0 ₽: просто записывай расходы и пояснение. Факт в новом месяце начинается с нуля.</p>
 <div id="budgetKpis" class="budget-kpis" aria-live="polite"></div>
 <div class="scrollbox"><table class="budget-table"><thead><tr><th>Категория</th><th>План, ₽</th><th>Факт, ₽</th><th>Остаток, ₽</th></tr></thead><tbody id="budgetRows"></tbody></table></div>
-<div class="budget-chart-panel"><h3>План и факт по категориям</h3><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span><span class="budget-over-key">● Факт выше плана</span></div><div id="budgetCategoryChart" class="budget-chart-scroll"></div></div>
+<details class="budget-chart-panel planner-fold" data-fold-key="categoryMonth"><summary>План и факт по категориям</summary><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span><span class="budget-over-key">● Факт выше плана</span></div><div id="budgetCategoryChart" class="budget-chart-scroll"></div></details>
 <div class="budget-entry"><h3>Записать расход</h3><form id="budgetExpenseForm" class="budget-expense-form">
 <label>Дата<input id="budgetExpenseDate" type="date" required></label><label>Категория<select id="budgetExpenseCategory"></select></label>
 <label>Сумма, ₽<input id="budgetExpenseAmount" type="text" inputmode="decimal" placeholder="Например, 1250,50" required></label>
@@ -903,7 +917,7 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
 <div class="plant-form-grid"><label>Номер выпуска<input id="ofzCode" type="text" maxlength="30" placeholder="Например, 262…" required></label><label>Счёт / брокер<input id="ofzAccount" type="text" maxlength="100" placeholder="Например, ИИС Сбер"></label><label>Количество, шт.<input id="ofzQuantity" type="number" min="0" max="10000000" step="1" value="0" required></label><label>Купон на 1 облигацию за выплату, ₽<input id="ofzCoupon" type="text" inputmode="decimal" required></label><label>Срок / погашение<input id="ofzMaturity" type="text" maxlength="100" placeholder="Дата или твоя заметка"></label><fieldset id="ofzPaymentMonths"><legend>Месяцы купонных выплат</legend></fieldset></div><p id="ofzFormMessage" class="small" role="status"></p><div class="week-transfer-actions"><button id="ofzCancel" type="button" class="btn ghost">Отмена</button><button class="btn" type="submit">Сохранить</button></div></form></dialog>
 </div></section>
 
-<section id="misc" class="view"><div id="body" class="misc-block">
+<section id="misc" class="view"><div class="card misc-tabs-card"><div class="treasury-tabs" aria-label="Разделы прочего"><button class="btn" data-misc-panel="body" aria-pressed="true">🧍 Тело</button><button class="btn secondary" data-misc-panel="plants" aria-pressed="false">🌿 Домашние растения</button></div></div><div id="body" class="misc-block">
     <div class="card">
       <div class="section-title">
         <div><h2>🧍 Тело</h2><div class="sub">Контрольные точки 01.09.2026 — 01.12.2027</div></div>
@@ -918,7 +932,7 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
       </div>
       <div class="small" style="margin-top:8px">Все введённые значения сохраняются автоматически.</div>
     </div>
-  </div><div id="plants" class="misc-block">
+  </div><div id="plants" class="misc-block" hidden>
 <div class="card"><div class="section-title"><div><h2>🌿 Домашние растения</h2><div class="sub">Мой домашний сад: коротко об уходе и место для своих наблюдений</div></div><button class="btn plant-plus" id="addPlant" aria-label="Добавить растение" title="Добавить растение">+</button></div>
 <p class="small">Иллюстрации показывают типичный вид, а не точную копию твоего растения. Полив зависит от просыхания грунта, света и сезона.</p>
 <div id="plantsGrid" class="plants-grid"></div></div>
@@ -1988,7 +2002,9 @@ document.getElementById('resetBtn').onclick=()=>{if(confirm('Удалить вс
 
 /* NAV */
 function openPlannerView(view){
+  const miscTarget=view==='plants'?'plants':'body';
   if(view==='body'||view==='plants')view='misc';
+  if(view==='misc')selectMiscPanel(miscTarget);
   if(view==='goals')view='week';
   if(view==='mandatory'||view==='habits')view='week';
   if(view==='week'){openCurrentMandatoryMonth();renderTodayPanel()}
@@ -2855,7 +2871,7 @@ function renderFinanceYear(){
   const years=[...new Set(['2026','2027',financeYear,...Object.keys(state.salaryMonths||{}).map(k=>k.slice(0,4)),...Object.keys(state.expenseBudgets||{}).map(k=>k.slice(0,4))])].sort();
   picker.innerHTML=years.map(year=>'<option value="'+year+'">'+year+'</option>').join('');picker.value=financeYear;
   const data=financeYearData(financeYear),current=monthlyFocusPeriod().key;
-  document.getElementById('financeYearContent').innerHTML=data.months.map(month=>{
+  document.getElementById('financeYearContent').innerHTML=financeDisplayMonths(data.months,current).map(month=>{
     const title=mandatoryMonthTitle(month.key),status=month.key===current?' · текущий':month.key>current?' · будущий':'';
     const opening=month.key===current?' open':'';
     return '<details class="finance-month planner-fold" data-fold-key="financeMonth-'+month.key+'"'+opening+'><summary>'+title+status+'<span class="small">Доход '+budgetMoney(month.income)+' · расход '+budgetMoney(month.expense)+'</span></summary><div class="planner-fold-body">'+financePair(month,title)+'</div></details>';
@@ -2863,6 +2879,23 @@ function renderFinanceYear(){
   bindPlannerFolds();
 }
 document.getElementById('financeYearPicker').onchange=e=>{financeYear=e.target.value;renderFinanceYear()};
+
+
+function financeDisplayMonths(months,current){
+  const now=months.find(month=>month.key===current);
+  if(!now)return months.slice();
+  return [now,...months.filter(month=>month.key<current).reverse(),...months.filter(month=>month.key>current)];
+}
+function selectMiscPanel(panel){
+  if(panel!=='body'&&panel!=='plants')return;
+  document.getElementById('body').hidden=panel!=='body';
+  document.getElementById('plants').hidden=panel!=='plants';
+  document.querySelectorAll('[data-misc-panel]').forEach(button=>{
+    const active=button.dataset.miscPanel===panel;
+    button.className='btn '+(active?'':'secondary');button.setAttribute('aria-pressed',String(active));
+  });
+}
+document.querySelectorAll('[data-misc-panel]').forEach(button=>button.onclick=()=>selectMiscPanel(button.dataset.miscPanel));
 
 function renderAll(){
   renderOfzYear();
