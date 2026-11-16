@@ -634,6 +634,10 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
 #savingsOfzPanel details>summary{cursor:pointer}
 #ofzKpis{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:620px){#ofzKpis{grid-template-columns:1fr 1fr}#ofzPaymentMonths{grid-template-columns:1fr 1fr}}
+
+.ofz-goal-form{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+#savings52HistoryList p{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.savings52-footer .btn{min-height:42px}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -868,7 +872,7 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
 <div class="savings52-draw"><button class="btn big" id="savings52Draw">🎲 Выбрать ячейку</button><div id="savings52Picked" role="status" aria-live="polite"></div></div>
 <p class="small">Положи указанную сумму в копилку и нажми на ячейку — она зачеркнётся. Можно выбрать ячейку вручную. Случайно выбранная ячейка остаётся выбранной до отметки; повторно закрытые ячейки не выпадают.</p>
 <div id="savings52Grid" class="savings52-grid"></div>
-<div class="savings52-footer"><button id="archiveSavingsPot" class="btn ghost">В архив</button><button id="savings52Undo" class="btn ghost">Отменить последнюю отметку</button><span class="small">Отмечай только реально отложенные суммы.</span></div>
+<div class="savings52-footer"><button id="editSavingsPot" class="btn secondary">Изменить цель</button><button id="deleteSavingsPot" class="btn ghost">Удалить копилку</button><button id="archiveSavingsPot" class="btn ghost">В архив</button><button id="savings52Undo" class="btn ghost">Отменить последнюю отметку</button><span class="small">Отмечай только реально отложенные суммы.</span></div>
 </div>
 <details id="savings52History" class="week-history" hidden><summary>Прошлые копилки</summary><div id="savings52HistoryList"></div></details>
 </div>
@@ -878,9 +882,10 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
 <p class="small">Добавляй только свои выпуски. Данные со скрина не внесены. Расчёт по указанному купону за одну выплату на одну облигацию, до налогов и комиссий; это не биржевые данные.</p>
 <div id="ofzKpis" class="budget-kpis"></div><div class="scrollbox ofz-scroll" tabindex="0" aria-label="Календарь купонов по месяцам"><table class="budget-table ofz-table"><thead id="ofzHead"></thead><tbody id="ofzBody"></tbody><tfoot id="ofzFoot"></tfoot></table></div>
 <p class="small">Галочка в месяце означает «купон получен». Месяцы выплат задаются при добавлении или изменении выпуска.</p>
-<div class="ofz-goal"><label>Цель купона на один выпуск за одну выплату, ₽ <input id="ofzCouponGoal" type="text" inputmode="decimal" aria-label="Цель купона"></label><p id="ofzGoalSummary" class="small"></p></div>
+<div class="ofz-goal"><form id="ofzGoalForm" class="ofz-goal-form"><label>Цель купона на один выпуск за одну выплату, ₽ <input id="ofzCouponGoal" type="text" inputmode="decimal" aria-label="Цель купона"></label><button type="submit" class="btn secondary">Сохранить цель</button></form><p id="ofzGoalError" class="small" role="status"></p><p id="ofzGoalSummary" class="small"></p></div>
 <details class="budget-chart-panel"><summary>Купоны по месяцам · график</summary><div class="budget-legend"><span class="budget-plan-key">● Расчёт</span><span class="budget-actual-key">● Получено</span></div><div id="ofzChart" class="budget-chart-scroll"></div></details>
 </div>
+<dialog id="editSavingsPotDialog" class="week-dialog"><form id="editSavingsPotForm"><div class="row-between"><h3>Изменить цель копилки</h3><button id="closeEditSavingsPot" class="btn ghost" type="button" aria-label="Закрыть">×</button></div><div class="plant-form-grid"><label>Название<input id="editSavingsPotName" type="text" maxlength="100" required></label><label>Новая цель, ₽<input id="editSavingsPotTarget" type="text" inputmode="decimal" required></label></div><p id="editSavingsPotInfo" class="small"></p><p id="editSavingsPotError" class="small" role="status"></p><div class="week-transfer-actions"><button id="cancelEditSavingsPot" class="btn ghost" type="button">Отмена</button><button class="btn" type="submit">Сохранить цель</button></div></form></dialog>
 <dialog id="ofzDialog" class="week-dialog"><form id="ofzForm"><div class="row-between"><h3 id="ofzDialogTitle">Добавить ОФЗ</h3><button id="ofzClose" type="button" class="btn ghost" aria-label="Закрыть">×</button></div>
 <div class="plant-form-grid"><label>Номер выпуска<input id="ofzCode" type="text" maxlength="30" placeholder="Например, 262…" required></label><label>Счёт / брокер<input id="ofzAccount" type="text" maxlength="100" placeholder="Например, ИИС Сбер"></label><label>Количество, шт.<input id="ofzQuantity" type="number" min="0" max="10000000" step="1" value="0" required></label><label>Купон на 1 облигацию за выплату, ₽<input id="ofzCoupon" type="text" inputmode="decimal" required></label><label>Срок / погашение<input id="ofzMaturity" type="text" maxlength="100" placeholder="Дата или твоя заметка"></label><fieldset id="ofzPaymentMonths"><legend>Месяцы купонных выплат</legend></fieldset></div><p id="ofzFormMessage" class="small" role="status"></p><div class="week-transfer-actions"><button id="ofzCancel" type="button" class="btn ghost">Отмена</button><button class="btn" type="submit">Сохранить</button></div></form></dialog>
 </div></section>
@@ -2497,7 +2502,8 @@ function renderSavings52(){
   history.slice().reverse().forEach(item=>{
     const totals=savings52Totals(item),row=document.createElement('p');
     row.textContent=(item.name||'Копилка')+' · цель '+budgetMoney(item.targetCents)+' · отложено '+budgetMoney(totals.saved)+' · '+totals.count+'/'+item.cells.length+' · '+String(item.createdAt).slice(0,10).split('-').reverse().join('.');
-    list.appendChild(row);
+    const remove=document.createElement('button');remove.className='btn ghost';remove.textContent='Удалить';remove.onclick=()=>{const index=state.savings52.history.findIndex(p=>p.id===item.id);if(index>=0&&confirm('Удалить архивную копилку? Удаление можно отменить.'))deleteWithUndo(state.savings52.history,index,renderSavings52,'Архивная копилка удалена')};
+    row.appendChild(remove);list.appendChild(row);
   });
 }
 document.getElementById('savings52Form').onsubmit=e=>{
@@ -2534,7 +2540,7 @@ document.getElementById('addSavingsPot').onclick=()=>{document.getElementById('s
 document.getElementById('archiveSavingsPot').onclick=()=>{
   ensureSavings52();const model=state.savings52,pot=model.active;if(!pot)return;
   if(!confirm('Убрать «'+(pot.name||'Копилка')+'» в архив? Все отметки сохранятся.'))return;
-  model.history.push(clone(pot));model.pots=model.pots.filter(p=>p.id!==pot.id);model.active=null;model.activeId=model.pots[0]?.id||null;save();renderSavings52();
+  model.history.push(clone(pot));model.pots.splice(model.pots.findIndex(p=>p.id===pot.id),1);model.active=null;model.activeId=model.pots[0]?.id||null;save();renderSavings52();
 };
 document.querySelectorAll('[data-savings-panel]').forEach(button=>button.onclick=()=>{
   const ofz=button.dataset.savingsPanel==='ofz';
@@ -2581,7 +2587,7 @@ function renderOfzYear(){
       row.appendChild(cell);
     }
     const goal=document.createElement('td');goal.textContent=h.quantity*h.couponCents>=record.goalCents?'✓ '+budgetMoney(h.quantity*h.couponCents):budgetMoney(h.quantity*h.couponCents)+' / '+budgetMoney(record.goalCents);row.appendChild(goal);
-    const actions=document.createElement('td'),edit=document.createElement('button'),remove=document.createElement('button');edit.className='btn ghost';edit.textContent='Изменить';edit.onclick=()=>openOfzDialog(h.id);remove.className='icon-btn';remove.textContent='×';remove.setAttribute('aria-label','Удалить выпуск '+h.code);remove.onclick=()=>deleteWithUndo(record.holdings,index,renderOfzYear,'Выпуск ОФЗ удалён');actions.append(edit,remove);row.appendChild(actions);body.appendChild(row);
+    const actions=document.createElement('td'),edit=document.createElement('button'),remove=document.createElement('button');edit.className='btn ghost';edit.textContent='Изменить';edit.onclick=()=>openOfzDialog(h.id);remove.className='btn ghost';remove.textContent='Удалить';remove.setAttribute('aria-label','Удалить выпуск '+h.code);remove.onclick=()=>{if(confirm('Удалить ОФЗ '+h.code+' за '+ofzYear+' год? Удаление можно отменить.'))deleteWithUndo(record.holdings,index,renderOfzYear,'Выпуск ОФЗ удалён')};actions.append(edit,remove);row.appendChild(actions);body.appendChild(row);
   });
   if(!record.holdings.length){const row=document.createElement('tr'),cell=document.createElement('td');cell.colSpan=18;cell.textContent='Пока 0 ОФЗ. Нажми «+ ОФЗ», когда добавишь первый выпуск.';row.appendChild(cell);body.appendChild(row)}
   document.getElementById('ofzFoot').innerHTML='<tr><th>Итого</th><td>'+totals.quantity+'</td><td colspan="2"></td>'+totals.months.map(m=>'<td>'+budgetMoney(m.plan)+'</td>').join('')+'<td colspan="2">'+budgetMoney(totals.plan)+' за год</td></tr>';
@@ -2612,6 +2618,81 @@ document.getElementById('ofzCouponGoal').onchange=e=>{const goal=budgetParseCent
 document.getElementById('ofzPrevYear').onclick=()=>{ofzYear--;renderOfzYear()};
 document.getElementById('ofzNextYear').onclick=()=>{ofzYear++;renderOfzYear()};
 document.getElementById('ofzThisYear').onclick=()=>{ofzYear=Number(monthlyFocusPeriod().key.slice(0,4));renderOfzYear()};
+
+
+let editingSavingsPotId=null;
+function savingsPotRebalance(pot,total,name){
+  if(!Number.isSafeInteger(total)||total<1||total>100000000000)return {ok:false,message:'Проверь сумму цели.'};
+  if(total===pot.targetCents){pot.name=name;return {ok:true};}
+  const totals=savings52Totals(pot),open=pot.cells.filter(cell=>!cell.done);
+  if(!open.length)return {ok:false,message:'Все ячейки уже закрыты. Для новой суммы создай новую копилку.'};
+  if(total<=totals.saved)return {ok:false,message:'Новая цель должна быть больше уже отложенной суммы '+budgetMoney(totals.saved)+'.'};
+  const remaining=total-totals.saved,blocked=new Set(pot.cells.filter(cell=>cell.done).map(cell=>cell.amountCents));
+  let amounts=savings52Amounts(remaining,open.length);
+  if(!amounts)return {ok:false,message:'Для '+open.length+' разных открытых ячеек не хватает суммы сверх уже отложенного. Увеличь цель.'};
+  if(amounts.some(amount=>blocked.has(amount))){
+    // Build the smallest allowed sequence, then assign the exact remaining difference.
+    let next=1;const base=[];
+    while(base.length<open.length){if(!blocked.has(next))base.push(next);next++}
+    const minimum=base.reduce((sum,amount)=>sum+amount,0);
+    if(remaining<minimum)return {ok:false,message:'Для разных положительных сумм с учётом закрытых ячеек нужно увеличить цель.'};
+    const last=base.length-1;base[last]+=remaining-minimum;
+    if(blocked.has(base[last])){
+      let found=false;
+      if(last>0){
+        const maxDelta=Math.floor((base[last]-base[last-1]-1)/2),limit=Math.min(maxDelta,2*blocked.size+1);
+        for(let delta=1;delta<=limit;delta++){
+          if(!blocked.has(base[last-1]+delta)&&!blocked.has(base[last]-delta)){base[last-1]+=delta;base[last]-=delta;found=true;break;}
+        }
+      }
+      if(!found)return {ok:false,message:'При этой цели суммы совпадают с закрытыми ячейками. Выбери немного другую сумму.'};
+    }
+    amounts=savings52Shuffle(base);
+  }
+  if(new Set(amounts).size!==amounts.length||amounts.some(amount=>blocked.has(amount))||amounts.reduce((sum,amount)=>sum+amount,0)!==remaining)return {ok:false,message:'Не удалось точно распределить цель. Попробуй другую сумму.'};
+  open.forEach((cell,index)=>cell.amountCents=amounts[index]);
+  pot.targetCents=total;pot.name=name;
+  return {ok:true};
+}
+function openEditSavingsPot(){
+  ensureSavings52();const pot=state.savings52.active;if(!pot)return;
+  editingSavingsPotId=pot.id;
+  document.getElementById('editSavingsPotName').value=pot.name||'Моя копилка';
+  document.getElementById('editSavingsPotTarget').value=String(pot.targetCents/100);
+  document.getElementById('editSavingsPotInfo').textContent='Уже отложено '+budgetMoney(savings52Totals(pot).saved)+'. Отмеченные взносы, даты и '+pot.cells.length+' ячеек сохранятся; изменятся только суммы незакрытых ячеек.';
+  document.getElementById('editSavingsPotError').textContent='';
+  document.getElementById('editSavingsPotDialog').showModal();
+}
+document.getElementById('editSavingsPot').onclick=openEditSavingsPot;
+document.getElementById('closeEditSavingsPot').onclick=document.getElementById('cancelEditSavingsPot').onclick=()=>document.getElementById('editSavingsPotDialog').close();
+document.getElementById('editSavingsPotForm').onsubmit=e=>{
+  e.preventDefault();ensureSavings52();
+  const pot=state.savings52.pots.find(p=>p.id===editingSavingsPotId),name=document.getElementById('editSavingsPotName').value.trim(),total=budgetParseCents(document.getElementById('editSavingsPotTarget').value);
+  if(!pot||!name){document.getElementById('editSavingsPotError').textContent='Укажи название. Если копилка удалена, открой её заново.';return;}
+  const result=savingsPotRebalance(pot,total,name);
+  if(!result.ok){document.getElementById('editSavingsPotError').textContent=result.message;return;}
+  save();document.getElementById('editSavingsPotDialog').close();renderSavings52();toast('Цель изменена, внесённые суммы сохранены');
+};
+function removeSavingsPot(id){
+  ensureSavings52();const model=state.savings52,index=model.pots.findIndex(p=>p.id===id);
+  if(index<0)return false;
+  const [pot]=model.pots.splice(index,1);
+  if(model.active?.id===id){model.active=null;model.activeId=model.pots[0]?.id||null;}
+  undoStack.push({label:'Копилка удалена',restore:()=>{
+    model.pots.splice(Math.min(index,model.pots.length),0,pot);model.activeId=pot.id;model.active=pot;renderSavings52();
+  }});
+  if(undoStack.length>20)undoStack.shift();
+  save();renderSavings52();updateUndoBar();return true;
+}
+document.getElementById('deleteSavingsPot').onclick=()=>{
+  const pot=state.savings52.active;if(!pot)return;
+  if(confirm('Удалить копилку «'+(pot.name||'Моя копилка')+'» с её отметками? Удаление можно отменить.'))removeSavingsPot(pot.id);
+};
+document.getElementById('ofzGoalForm').onsubmit=e=>{
+  e.preventDefault();const goal=budgetParseCents(document.getElementById('ofzCouponGoal').value);
+  if(goal===null){document.getElementById('ofzGoalError').textContent='Введи неотрицательную сумму с точностью до копейки.';return;}
+  ensureOfzYear(ofzYear).goalCents=goal;save();renderOfzYear();document.getElementById('ofzGoalError').textContent='Цель сохранена.';toast('Цель по ОФЗ сохранена');
+};
 
 function renderAll(){
   renderOfzYear();
