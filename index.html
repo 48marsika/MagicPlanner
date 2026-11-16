@@ -613,6 +613,27 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
 @media(hover:hover){.savings52-cell:not(:disabled):hover{transform:translateY(-3px);border-color:var(--accent)}}
 @media(max-width:520px){.savings52-hero{gap:8px;padding:20px 16px}.savings52-emblem{width:78px;height:90px;padding:9px;border-radius:25px}.savings52-hero-tags span{font-size:10px;padding:5px 7px}.savings52-card .budget-kpis{grid-template-columns:1fr}.savings52-cell{min-height:115px;border-radius:19px}.savings52-cell>strong{font-size:17px}.savings52-draw{padding:14px}.savings52-form{padding:14px}}
 @media(prefers-reduced-motion:reduce){.savings52-cell,.savings52-progress>span,.savings52-draw .btn{transition:none}}
+
+[hidden]{display:none!important}
+.savings-pot-toolbar{margin:18px 0;flex-wrap:wrap}
+.savings-pot-toolbar label{display:flex;align-items:center;gap:10px;flex:1;min-width:200px}
+#savingsPotPicker{min-width:0;flex:1;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--panel-strong);color:var(--text)}
+.savings52-form label{min-width:130px}
+.ofz-scroll{max-height:65vh;isolation:isolate}
+.ofz-table{min-width:1900px}
+.ofz-table thead th{position:sticky;top:0;background:var(--panel-strong);z-index:2}
+.ofz-table tr>th:first-child{position:sticky;left:0;background:var(--panel-strong);z-index:3;min-width:150px;max-width:230px;white-space:normal}
+.ofz-table thead th:first-child{z-index:4}
+.ofz-month-cell{display:grid;gap:8px;justify-items:center;font-size:12px}
+.ofz-month-cell input{width:23px;height:23px;accent-color:var(--accent)}
+#ofzPaymentMonths{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;border:1px solid var(--line);border-radius:16px}
+#ofzPaymentMonths label{display:flex;gap:6px;align-items:center}
+.ofz-goal{margin:18px 0}
+.ofz-goal input{width:110px;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--panel-strong);color:var(--text)}
+#savingsOfzPanel h2{font-family:Georgia,serif;font-size:34px;font-weight:500}
+#savingsOfzPanel details>summary{cursor:pointer}
+#ofzKpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:620px){#ofzKpis{grid-template-columns:1fr 1fr}#ofzPaymentMonths{grid-template-columns:1fr 1fr}}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -832,11 +853,14 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
   </section>
 
   <section id="savings52" class="view"><div class="card savings52-card">
+<div class="treasury-tabs"><button class="btn" data-savings-panel="pots">Мои копилки</button><button class="btn secondary" data-savings-panel="ofz">Мои ОФЗ</button></div>
+<div id="savingsPotsPanel">
 <div class="savings52-hero">
-<div class="savings52-hero-copy"><span id="savings52Season" class="savings52-eyebrow"></span><h2>Копилка <span>52</span></h2><p>Маленькие шаги к большой цели</p><div class="savings52-hero-tags"><span>52 ячейки</span><span>Разные суммы</span><span>Твой темп</span></div></div>
+<div class="savings52-hero-copy"><span id="savings52Season" class="savings52-eyebrow"></span><h2>Мои копилки</h2><p>Маленькие шаги к большой цели</p><div class="savings52-hero-tags"><span id="savingsCellCount">Любое число недель</span><span>Разные суммы</span><span>Твой темп</span></div></div>
 <div class="savings52-emblem" aria-hidden="true"><svg viewBox="0 0 120 120" fill="none"><path d="M29 49c8-14 24-21 41-16l15-9 2 20c8 5 13 13 14 22h9v19h-14l-7 16H76l-3-12H49l-5 12H31l-1-19c-9-7-12-17-8-27-10 2-14-2-12-9 1-4 6-6 10-3" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M49 39h18M55 11v13" stroke="currentColor" stroke-width="4.5" stroke-linecap="round"/><circle cx="85" cy="59" r="3" fill="currentColor"/><circle cx="55" cy="11" r="8" stroke="currentColor" stroke-width="3"/></svg></div>
 </div>
-<form id="savings52Form" class="savings52-form"><label>Хочу накопить, ₽<input id="savings52Target" type="text" inputmode="decimal" placeholder="Например, 52 000" required aria-label="Целевая сумма накопления"></label><button class="btn" type="submit">Создать 52 ячейки</button></form>
+<div class="row-between savings-pot-toolbar"><label>Моя копилка <select id="savingsPotPicker" aria-label="Выбрать копилку"></select></label><button id="addSavingsPot" class="btn secondary">+ Копилка</button></div>
+<form id="savings52Form" class="savings52-form"><label>Название<input id="savingsPotName" type="text" maxlength="100" placeholder="Например, на отпуск"></label><label>Хочу накопить, ₽<input id="savings52Target" type="text" inputmode="decimal" placeholder="Например, 52 000" required></label><label>Количество недель<input id="savingsWeeks" type="number" min="1" max="260" step="1" value="52" list="savingsWeekPresets" required><datalist id="savingsWeekPresets"><option value="12"><option value="26"><option value="52"><option value="104"></datalist></label><button class="btn" type="submit">Создать копилку</button></form>
 <p class="small" id="savings52Message" role="status"></p>
 <div id="savings52Active" hidden>
 <div id="savings52Stats" class="budget-kpis" aria-live="polite"></div>
@@ -844,9 +868,21 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
 <div class="savings52-draw"><button class="btn big" id="savings52Draw">🎲 Выбрать ячейку</button><div id="savings52Picked" role="status" aria-live="polite"></div></div>
 <p class="small">Положи указанную сумму в копилку и нажми на ячейку — она зачеркнётся. Можно выбрать ячейку вручную. Случайно выбранная ячейка остаётся выбранной до отметки; повторно закрытые ячейки не выпадают.</p>
 <div id="savings52Grid" class="savings52-grid"></div>
-<div class="savings52-footer"><button id="savings52Undo" class="btn ghost">Отменить последнюю отметку</button><span class="small">Отмечай только реально отложенные суммы.</span></div>
+<div class="savings52-footer"><button id="archiveSavingsPot" class="btn ghost">В архив</button><button id="savings52Undo" class="btn ghost">Отменить последнюю отметку</button><span class="small">Отмечай только реально отложенные суммы.</span></div>
 </div>
 <details id="savings52History" class="week-history" hidden><summary>Прошлые копилки</summary><div id="savings52HistoryList"></div></details>
+</div>
+<div id="savingsOfzPanel" class="budget-card" hidden>
+<div class="section-title"><div><h2>Мои ОФЗ</h2><div class="sub">Мой портфель и календарь купонных выплат</div></div><button id="addOfz" class="btn secondary">+ ОФЗ</button></div>
+<div class="month-nav"><button id="ofzPrevYear" class="btn ghost" aria-label="Предыдущий год">←</button><strong id="ofzYearTitle"></strong><button id="ofzNextYear" class="btn ghost" aria-label="Следующий год">→</button><button id="ofzThisYear" class="btn secondary">Текущий год</button></div>
+<p class="small">Добавляй только свои выпуски. Данные со скрина не внесены. Расчёт по указанному купону за одну выплату на одну облигацию, до налогов и комиссий; это не биржевые данные.</p>
+<div id="ofzKpis" class="budget-kpis"></div><div class="scrollbox ofz-scroll" tabindex="0" aria-label="Календарь купонов по месяцам"><table class="budget-table ofz-table"><thead id="ofzHead"></thead><tbody id="ofzBody"></tbody><tfoot id="ofzFoot"></tfoot></table></div>
+<p class="small">Галочка в месяце означает «купон получен». Месяцы выплат задаются при добавлении или изменении выпуска.</p>
+<div class="ofz-goal"><label>Цель купона на один выпуск за одну выплату, ₽ <input id="ofzCouponGoal" type="text" inputmode="decimal" aria-label="Цель купона"></label><p id="ofzGoalSummary" class="small"></p></div>
+<details class="budget-chart-panel"><summary>Купоны по месяцам · график</summary><div class="budget-legend"><span class="budget-plan-key">● Расчёт</span><span class="budget-actual-key">● Получено</span></div><div id="ofzChart" class="budget-chart-scroll"></div></details>
+</div>
+<dialog id="ofzDialog" class="week-dialog"><form id="ofzForm"><div class="row-between"><h3 id="ofzDialogTitle">Добавить ОФЗ</h3><button id="ofzClose" type="button" class="btn ghost" aria-label="Закрыть">×</button></div>
+<div class="plant-form-grid"><label>Номер выпуска<input id="ofzCode" type="text" maxlength="30" placeholder="Например, 262…" required></label><label>Счёт / брокер<input id="ofzAccount" type="text" maxlength="100" placeholder="Например, ИИС Сбер"></label><label>Количество, шт.<input id="ofzQuantity" type="number" min="0" max="10000000" step="1" value="0" required></label><label>Купон на 1 облигацию за выплату, ₽<input id="ofzCoupon" type="text" inputmode="decimal" required></label><label>Срок / погашение<input id="ofzMaturity" type="text" maxlength="100" placeholder="Дата или твоя заметка"></label><fieldset id="ofzPaymentMonths"><legend>Месяцы купонных выплат</legend></fieldset></div><p id="ofzFormMessage" class="small" role="status"></p><div class="week-transfer-actions"><button id="ofzCancel" type="button" class="btn ghost">Отмена</button><button class="btn" type="submit">Сохранить</button></div></form></dialog>
 </div></section>
 <section id="plants" class="view">
 <div class="card"><div class="section-title"><div><h2>🌿 Домашние растения</h2><div class="sub">Мой домашний сад: коротко об уходе и место для своих наблюдений</div></div><button class="btn plant-plus" id="addPlant" aria-label="Добавить растение" title="Добавить растение">+</button></div>
@@ -930,7 +966,7 @@ body :is(input[type=checkbox],input[type=range]){accent-color:var(--accent)}
 
   <button class="navbtn" data-view="goals"><span>🎯</span><span>Цели</span></button>
   <button class="navbtn" data-view="treasury"><span>💰</span><span>Казна</span></button>
-  <button class="navbtn" data-view="savings52" aria-label="Копилка 52"><span>🐷</span><span>Копилка 52</span></button>
+  <button class="navbtn" data-view="savings52" aria-label="Копилки и ОФЗ"><span>🐷</span><span>Копилки</span></button>
   <button class="navbtn" data-view="plants" aria-label="Домашние растения" title="Домашние растения"><span>🌿</span><span>Растения</span></button>
   <button class="navbtn" data-view="body"><span>🧍</span><span>Тело</span></button>
 
@@ -974,7 +1010,8 @@ const defaults={
   salaryMonths:{},
   salaryPaymentHelper:{},
   houseplants:null,
-  savings52:{active:null,history:[]},
+  savings52:{active:null,history:[],pots:[],activeId:null},
+  ofzYears:{},
   treasury:{
     selectedYear:2026,selectedMonth:8,
     months:{},
@@ -2372,17 +2409,18 @@ function savings52Shuffle(values,random=Math.random){
   for(let i=result.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[result[i],result[j]]=[result[j],result[i]]}
   return result;
 }
-function savings52Amounts(total,random=Math.random){
-  if(!Number.isSafeInteger(total)||total<1378||total>100000000000)return null;
-  const unit=[10000,1000,100,1].find(unit=>total>=1378*unit);
-  const extra=total-1378*unit,baseExtra=Math.floor(extra/(52*unit))*unit;
-  const remainder=extra-baseExtra*52,units=Math.floor(remainder/unit),last=remainder%unit;
-  const values=Array.from({length:52},(_,i)=>(i+1)*unit+baseExtra+(i>=52-units?unit:0)+(i===51?last:0));
+function savings52Amounts(total,weeks=52,random=Math.random){
+  const minimum=weeks*(weeks+1)/2;
+  if(!Number.isInteger(weeks)||weeks<1||weeks>260||!Number.isSafeInteger(total)||total<minimum||total>100000000000)return null;
+  const unit=[10000,1000,100,1].find(unit=>total>=minimum*unit);
+  const extra=total-minimum*unit,baseExtra=Math.floor(extra/(weeks*unit))*unit;
+  const remainder=extra-baseExtra*weeks,units=Math.floor(remainder/unit),last=remainder%unit;
+  const values=Array.from({length:weeks},(_,i)=>(i+1)*unit+baseExtra+(i>=weeks-units?unit:0)+(i===weeks-1?last:0));
   return savings52Shuffle(values,random);
 }
-function savings52Create(total){
-  const amounts=savings52Amounts(total);if(!amounts)return null;
-  return {id:crypto.randomUUID(),targetCents:total,createdAt:new Date().toISOString(),cells:amounts.map((amountCents,index)=>({number:index+1,amountCents,done:false,paidDate:''})),order:savings52Shuffle(Array.from({length:52},(_,i)=>i)),cursor:0,pending:null,marks:[]};
+function savings52Create(total,weeks=52,name=''){
+  const amounts=savings52Amounts(total,weeks);if(!amounts)return null;
+  return {id:crypto.randomUUID(),name:name||'Моя копилка',weeks,targetCents:total,createdAt:new Date().toISOString(),cells:amounts.map((amountCents,index)=>({number:index+1,amountCents,done:false,paidDate:''})),order:savings52Shuffle(Array.from({length:weeks},(_,i)=>i)),cursor:0,pending:null,marks:[]};
 }
 function savings52Totals(challenge){
   const done=challenge.cells.filter(cell=>cell.done);
@@ -2415,21 +2453,30 @@ function savings52UndoMark(challenge){
 }
 function ensureSavings52(){
   if(!state.savings52||typeof state.savings52!=='object')state.savings52={active:null,history:[]};
-  if(!Array.isArray(state.savings52.history))state.savings52.history=[];
+  const model=state.savings52;
+  if(!Array.isArray(model.history))model.history=[];
+  if(!Array.isArray(model.pots))model.pots=[];
+  // Adopt the old single active challenge without touching its cells, marks or draw order.
+  if(model.active&&!model.pots.some(p=>p.id===model.active.id))model.pots.push(model.active);
+  if(!model.activeId)model.activeId=model.active?.id||model.pots[0]?.id||null;
+  model.active=model.pots.find(p=>p.id===model.activeId)||model.pots[0]||null;
+  model.activeId=model.active?.id||null;
 }
 function renderSavings52(){
   document.getElementById('savings52Season').textContent=monthlyFocusPeriod().label+' · моя копилка';
   ensureSavings52();const challenge=state.savings52.active;
+  renderSavingsPotPicker();
+  document.getElementById('savingsCellCount').textContent=challenge?challenge.cells.length+' недель · '+challenge.cells.length+' ячеек':'Выбирай срок сама';
   document.getElementById('savings52Active').hidden=!challenge;
-  document.getElementById('savings52Message').textContent=challenge?'Сумма всех 52 ячеек точно равна цели. Новая цель создаст новую копилку; прежняя останется в истории.':'Впиши цель — суммы распределятся автоматически. Все суммы будут разными и положительными.';
+  document.getElementById('savings52Message').textContent=challenge?'Сумма всех ячеек точно равна цели. Для другой цели добавь ещё одну копилку — прогресс каждой сохраняется отдельно.':'Впиши цель и число недель — суммы распределятся автоматически. Каждая копилка независима.';
   if(challenge){
     const totals=savings52Totals(challenge),percent=totals.saved/challenge.targetCents*100;
     document.getElementById('savings52Stats').innerHTML=[['Цель',budgetMoney(challenge.targetCents)],['Уже отложено',budgetMoney(totals.saved)],['Осталось',budgetMoney(totals.remaining)]].map(([label,value])=>'<div class="budget-kpi"><span>'+label+'</span><strong>'+value+'</strong></div>').join('');
     document.getElementById('savings52ProgressFill').style.width=percent+'%';
-    const progress=document.getElementById('savings52Progress');progress.setAttribute('aria-valuemin','0');progress.setAttribute('aria-valuemax','100');progress.setAttribute('aria-valuenow',String(Math.round(percent)));progress.setAttribute('aria-valuetext',totals.count+' из 52 ячеек, '+budgetMoney(totals.saved));
+    const progress=document.getElementById('savings52Progress');progress.setAttribute('aria-valuemin','0');progress.setAttribute('aria-valuemax','100');progress.setAttribute('aria-valuenow',String(Math.round(percent)));progress.setAttribute('aria-valuetext',totals.count+' из '+challenge.cells.length+' ячеек, '+budgetMoney(totals.saved));
     const pending=challenge.pending!==null?challenge.cells[challenge.pending]:null;
-    document.getElementById('savings52Picked').textContent=totals.count===52?'Все 52 ячейки закрыты. Цель достигнута!':pending&&!pending.done?'Выпала № '+pending.number+' — '+budgetMoney(pending.amountCents):'Закрыто '+totals.count+' из 52. Выбери следующую ячейку.';
-    const draw=document.getElementById('savings52Draw');draw.disabled=totals.count===52||!!(pending&&!pending.done);draw.textContent=pending&&!pending.done?'Отметь выбранную ячейку':'🎲 Выбрать ячейку';
+    document.getElementById('savings52Picked').textContent=totals.count===challenge.cells.length?'Все ячейки закрыты. Цель достигнута!':pending&&!pending.done?'Выпала № '+pending.number+' — '+budgetMoney(pending.amountCents):'Закрыто '+totals.count+' из '+challenge.cells.length+'. Выбери следующую ячейку.';
+    const draw=document.getElementById('savings52Draw');draw.disabled=totals.count===challenge.cells.length||!!(pending&&!pending.done);draw.textContent=pending&&!pending.done?'Отметь выбранную ячейку':'🎲 Выбрать ячейку';
     document.getElementById('savings52Undo').disabled=!challenge.marks.length;
     const grid=document.getElementById('savings52Grid');grid.replaceChildren();
     challenge.cells.forEach((cell,index)=>{
@@ -2449,19 +2496,20 @@ function renderSavings52(){
   const list=document.getElementById('savings52HistoryList');list.replaceChildren();
   history.slice().reverse().forEach(item=>{
     const totals=savings52Totals(item),row=document.createElement('p');
-    row.textContent='Цель '+budgetMoney(item.targetCents)+' · отложено '+budgetMoney(totals.saved)+' · '+totals.count+'/52 · '+String(item.createdAt).slice(0,10).split('-').reverse().join('.');
+    row.textContent=(item.name||'Копилка')+' · цель '+budgetMoney(item.targetCents)+' · отложено '+budgetMoney(totals.saved)+' · '+totals.count+'/'+item.cells.length+' · '+String(item.createdAt).slice(0,10).split('-').reverse().join('.');
     list.appendChild(row);
   });
 }
 document.getElementById('savings52Form').onsubmit=e=>{
-  e.preventDefault();
-  const total=budgetParseCents(document.getElementById('savings52Target').value);
-  if(total===null||total<1378){document.getElementById('savings52Message').textContent='Введи сумму от 13,78 ₽: это минимум для 52 разных положительных сумм с точностью до копейки.';return;}
-  const previous=state.savings52.active;
-  if(previous&&!confirm('Создать новую копилку? Текущая копилка с её отметками сохранится в истории.'))return;
-  const challenge=savings52Create(total);if(!challenge)return;
-  if(previous)state.savings52.history.push(clone(previous));
-  state.savings52.active=challenge;save();renderSavings52();document.getElementById('savings52Target').value='';
+  e.preventDefault();ensureSavings52();
+  const total=budgetParseCents(document.getElementById('savings52Target').value),weeks=Number(document.getElementById('savingsWeeks').value);
+  const minimum=weeks*(weeks+1)/2;
+  if(!Number.isInteger(weeks)||weeks<1||weeks>260){document.getElementById('savings52Message').textContent='Выбери от 1 до 260 недель.';return;}
+  if(total===null||total<minimum){document.getElementById('savings52Message').textContent='Для '+weeks+' разных положительных сумм нужно не менее '+budgetMoney(minimum)+'.';return;}
+  const name=document.getElementById('savingsPotName').value.trim().slice(0,100)||'Копилка '+(state.savings52.pots.length+1);
+  const challenge=savings52Create(total,weeks,name);if(!challenge)return;
+  state.savings52.pots.push(challenge);state.savings52.activeId=challenge.id;state.savings52.active=challenge;
+  save();renderSavings52();document.getElementById('savings52Form').hidden=true;document.getElementById('savings52Target').value='';document.getElementById('savingsPotName').value='';
 };
 document.getElementById('savings52Draw').onclick=()=>{
   const challenge=state.savings52.active;if(!challenge)return;
@@ -2470,7 +2518,103 @@ document.getElementById('savings52Draw').onclick=()=>{
 };
 document.getElementById('savings52Undo').onclick=()=>{const challenge=state.savings52.active;if(challenge&&savings52UndoMark(challenge)){save();renderSavings52()}};
 
+
+function renderSavingsPotPicker(){
+  const picker=document.getElementById('savingsPotPicker');picker.replaceChildren();
+  state.savings52.pots.forEach(pot=>{
+    const option=document.createElement('option'),totals=savings52Totals(pot);option.value=pot.id;option.textContent=(pot.name||'Копилка')+' · '+budgetMoney(pot.targetCents)+' · '+totals.count+'/'+pot.cells.length;picker.appendChild(option);
+  });
+  picker.value=state.savings52.activeId||'';picker.disabled=!state.savings52.pots.length;
+  if(!state.savings52.pots.length)document.getElementById('savings52Form').hidden=false;
+}
+document.getElementById('savingsPotPicker').onchange=e=>{
+  state.savings52.activeId=e.target.value;state.savings52.active=state.savings52.pots.find(p=>p.id===e.target.value)||null;save();renderSavings52();
+};
+document.getElementById('addSavingsPot').onclick=()=>{document.getElementById('savings52Form').hidden=false;document.getElementById('savingsPotName').focus()};
+document.getElementById('archiveSavingsPot').onclick=()=>{
+  ensureSavings52();const model=state.savings52,pot=model.active;if(!pot)return;
+  if(!confirm('Убрать «'+(pot.name||'Копилка')+'» в архив? Все отметки сохранятся.'))return;
+  model.history.push(clone(pot));model.pots=model.pots.filter(p=>p.id!==pot.id);model.active=null;model.activeId=model.pots[0]?.id||null;save();renderSavings52();
+};
+document.querySelectorAll('[data-savings-panel]').forEach(button=>button.onclick=()=>{
+  const ofz=button.dataset.savingsPanel==='ofz';
+  document.getElementById('savingsPotsPanel').hidden=ofz;document.getElementById('savingsOfzPanel').hidden=!ofz;
+  document.querySelectorAll('[data-savings-panel]').forEach(b=>b.className='btn '+(b===button?'':'secondary'));
+  if(ofz)renderOfzYear();
+});
+let ofzYear=Number(monthlyFocusPeriod().key.slice(0,4)),editingOfzId=null;
+function ensureOfzYear(year){
+  if(!state.ofzYears||typeof state.ofzYears!=='object')state.ofzYears={};
+  if(!state.ofzYears[year]){
+    const previous=Object.keys(state.ofzYears).map(Number).filter(y=>y<year).sort((a,b)=>a-b).at(-1);
+    const old=previous?state.ofzYears[previous]:null;
+    state.ofzYears[year]={holdings:old?old.holdings.map(h=>({...clone(h),received:{}})):[],goalCents:old?.goalCents??100000};
+  }return state.ofzYears[year];
+}
+function ofzTotals(record){
+  const months=Array.from({length:12},()=>({plan:0,actual:0}));
+  record.holdings.forEach(h=>{
+    const coupon=h.quantity*h.couponCents;
+    h.months.forEach(m=>{months[m].plan+=coupon;const received=h.received?.[m];if(received)months[m].actual+=typeof received==='object'?received.amountCents:coupon});
+  });
+  return {months,plan:months.reduce((a,m)=>a+m.plan,0),actual:months.reduce((a,m)=>a+m.actual,0),quantity:record.holdings.reduce((a,h)=>a+h.quantity,0)};
+}
+function renderOfzYear(){
+  const record=ensureOfzYear(ofzYear),totals=ofzTotals(record);
+  document.getElementById('ofzYearTitle').textContent=String(ofzYear);
+  document.getElementById('ofzThisYear').disabled=ofzYear===Number(monthlyFocusPeriod().key.slice(0,4));
+  document.getElementById('ofzKpis').innerHTML=[['Выпусков',record.holdings.length],['Облигаций, шт.',totals.quantity],['Купоны за год · расчёт',budgetMoney(totals.plan)],['Получено по отметкам',budgetMoney(totals.actual)]].map(([label,value])=>'<div class="budget-kpi"><span>'+label+'</span><strong>'+value+'</strong></div>').join('');
+  document.getElementById('ofzHead').innerHTML='<tr><th>ОФЗ / счёт</th><th>Шт.</th><th>Купон на 1 шт.</th><th>Срок / погашение</th>'+monthNames.map(m=>'<th>'+m+'</th>').join('')+'<th>Цель купона</th><th>Изменить</th></tr>';
+  const body=document.getElementById('ofzBody');body.replaceChildren();
+  record.holdings.forEach((h,index)=>{
+    const row=document.createElement('tr'),title=document.createElement('th');title.scope='row';title.textContent=h.code+(h.account?' · '+h.account:'');row.appendChild(title);
+    [String(h.quantity),budgetMoney(h.couponCents),h.maturity||'—'].forEach(value=>{const cell=document.createElement('td');cell.textContent=value;row.appendChild(cell)});
+    for(let month=0;month<12;month++){
+      const cell=document.createElement('td');
+      if(h.months.includes(month)){
+        const label=document.createElement('label');label.className='ofz-month-cell';
+        const value=document.createElement('span');value.textContent=budgetMoney(h.quantity*h.couponCents);
+        const check=document.createElement('input');check.type='checkbox';check.checked=!!h.received?.[month];check.setAttribute('aria-label','Получен купон '+h.code+': '+monthNames[month]+' '+ofzYear);
+        check.onchange=()=>{if(!h.received)h.received={};h.received[month]=check.checked?{amountCents:h.quantity*h.couponCents,date:localPlannerDate()}:null;save();renderOfzYear()};
+        label.append(value,check);cell.appendChild(label);
+      }else cell.textContent='—';
+      row.appendChild(cell);
+    }
+    const goal=document.createElement('td');goal.textContent=h.quantity*h.couponCents>=record.goalCents?'✓ '+budgetMoney(h.quantity*h.couponCents):budgetMoney(h.quantity*h.couponCents)+' / '+budgetMoney(record.goalCents);row.appendChild(goal);
+    const actions=document.createElement('td'),edit=document.createElement('button'),remove=document.createElement('button');edit.className='btn ghost';edit.textContent='Изменить';edit.onclick=()=>openOfzDialog(h.id);remove.className='icon-btn';remove.textContent='×';remove.setAttribute('aria-label','Удалить выпуск '+h.code);remove.onclick=()=>deleteWithUndo(record.holdings,index,renderOfzYear,'Выпуск ОФЗ удалён');actions.append(edit,remove);row.appendChild(actions);body.appendChild(row);
+  });
+  if(!record.holdings.length){const row=document.createElement('tr'),cell=document.createElement('td');cell.colSpan=18;cell.textContent='Пока 0 ОФЗ. Нажми «+ ОФЗ», когда добавишь первый выпуск.';row.appendChild(cell);body.appendChild(row)}
+  document.getElementById('ofzFoot').innerHTML='<tr><th>Итого</th><td>'+totals.quantity+'</td><td colspan="2"></td>'+totals.months.map(m=>'<td>'+budgetMoney(m.plan)+'</td>').join('')+'<td colspan="2">'+budgetMoney(totals.plan)+' за год</td></tr>';
+  document.getElementById('ofzCouponGoal').value=String(record.goalCents/100);
+  const ready=record.holdings.filter(h=>h.quantity*h.couponCents>=record.goalCents).length;
+  document.getElementById('ofzGoalSummary').textContent=record.holdings.length?'Цель достигнута по '+ready+' из '+record.holdings.length+' выпусков.':'Цель пока не оценивается: портфель пуст.';
+  document.getElementById('ofzChart').innerHTML=budgetSvgBars(totals.months.map((m,i)=>({...m,name:monthNames[i]})),'Купоны по месяцам '+ofzYear,'расчёт','получено');
+}
+function openOfzDialog(id){
+  const record=ensureOfzYear(ofzYear),h=id?record.holdings.find(h=>h.id===id):{};if(!h)return;
+  editingOfzId=id||null;document.getElementById('ofzDialogTitle').textContent=id?'Изменить ОФЗ':'Добавить ОФЗ';
+  document.getElementById('ofzCode').value=h.code||'';document.getElementById('ofzAccount').value=h.account||'';document.getElementById('ofzQuantity').value=h.quantity||0;document.getElementById('ofzCoupon').value=h.couponCents===undefined?'':String(h.couponCents/100);document.getElementById('ofzMaturity').value=h.maturity||'';
+  document.querySelectorAll('#ofzPaymentMonths input').forEach(input=>input.checked=(h.months||[]).includes(Number(input.value)));
+  document.getElementById('ofzFormMessage').textContent='';document.getElementById('ofzDialog').showModal();
+}
+monthNames.forEach((name,index)=>{const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.value=String(index);label.append(input,document.createTextNode(name));document.getElementById('ofzPaymentMonths').appendChild(label)});
+document.getElementById('addOfz').onclick=()=>openOfzDialog();
+document.getElementById('ofzClose').onclick=document.getElementById('ofzCancel').onclick=()=>document.getElementById('ofzDialog').close();
+document.getElementById('ofzForm').onsubmit=e=>{
+  e.preventDefault();const record=ensureOfzYear(ofzYear),quantity=Number(document.getElementById('ofzQuantity').value),coupon=budgetParseCents(document.getElementById('ofzCoupon').value),code=document.getElementById('ofzCode').value.trim();
+  if(!code||!Number.isInteger(quantity)||quantity<0||quantity>10000000||coupon===null||!Number.isSafeInteger(quantity*coupon)){document.getElementById('ofzFormMessage').textContent='Проверь номер, целое количество и неотрицательную сумму купона.';return;}
+  const old=editingOfzId?record.holdings.find(h=>h.id===editingOfzId):null;if(editingOfzId&&!old){document.getElementById('ofzFormMessage').textContent='Выпуск удалён. Открой форму заново.';return;}
+  const holding={id:old?.id||crypto.randomUUID(),code,account:document.getElementById('ofzAccount').value.trim(),quantity,couponCents:coupon,maturity:document.getElementById('ofzMaturity').value.trim(),months:Array.from(document.querySelectorAll('#ofzPaymentMonths input:checked')).map(i=>Number(i.value)),received:old?.received||{}};
+  if(old)record.holdings[record.holdings.indexOf(old)]=holding;else record.holdings.push(holding);
+  save();document.getElementById('ofzDialog').close();renderOfzYear();
+};
+document.getElementById('ofzCouponGoal').onchange=e=>{const goal=budgetParseCents(e.target.value);if(goal===null){renderOfzYear();return;}ensureOfzYear(ofzYear).goalCents=goal;save();renderOfzYear()};
+document.getElementById('ofzPrevYear').onclick=()=>{ofzYear--;renderOfzYear()};
+document.getElementById('ofzNextYear').onclick=()=>{ofzYear++;renderOfzYear()};
+document.getElementById('ofzThisYear').onclick=()=>{ofzYear=Number(monthlyFocusPeriod().key.slice(0,4));renderOfzYear()};
+
 function renderAll(){
+  renderOfzYear();
   renderSavings52();
   renderHouseplants();
   renderMandatoryMonth();
