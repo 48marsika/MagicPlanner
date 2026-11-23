@@ -692,6 +692,13 @@ body input[type=file]::file-selector-button:hover{filter:brightness(1.07)}
 body input[type=file]:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .misc-tabs-card{padding:12px 16px}.misc-tabs-card .treasury-tabs{margin-bottom:0;padding-bottom:0}
 @media(prefers-reduced-motion:reduce){body input[type=file]::file-selector-button{transition:none}}
+
+#salaryPaymentHelper{margin-top:0}
+#helperPaymentColumns{grid-template-areas:"first second" "first students";align-items:start}
+.helper-skyeng-1{grid-area:first}.helper-skyeng-2{grid-area:second}.helper-students-sber{grid-area:students}
+.helper-add-item{display:grid;gap:8px;margin-top:12px}
+.helper-balance{display:grid;gap:8px;margin-top:14px}
+.helper-balance input,.helper-add-item input{width:100%;min-width:0;padding:9px;border:1px solid var(--line);background:var(--panel);color:var(--text)}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -716,7 +723,15 @@ body input[type=file]:focus-visible{outline:2px solid var(--accent);outline-offs
 <div class="card today-card"><div class="section-title"><div><h2>☀️ Сегодня</h2><div class="sub" id="todayDateLabel"></div></div><button id="addTodayTask" class="btn secondary">+ Задача</button></div><p id="todayWeekNotice" class="small"></p><div id="todayTaskList"></div><div class="today-footer"><span id="todayTaskCount" class="small" aria-live="polite"></span><button id="todayNewWeek" class="btn ghost" hidden>Начать текущую неделю</button></div></div>
     <div class="card">
 
-      <details id="goals" class="card planner-fold" data-fold-key="yearGoals" open><summary>🎯 Цели на год <span class="badge" id="yearGoalCount">Выполнено 0 из 0</span></summary><div class="planner-fold-body"><div class="row-between"><strong>Мои цели</strong><button class="btn secondary big" id="addYearGoal">+ Добавить цель</button></div><div id="yearGoals"></div></div></details>
+      <details id="salaryPaymentHelper" class="card salary-payment-helper planner-fold">
+<summary>💳 Помощник по выплатам</summary>
+<div class="month-nav helper-month-nav"><button id="helperPrev" class="btn ghost" type="button" aria-label="Предыдущий месяц помощника">←</button><strong id="helperMonthTitle"></strong><button id="helperNext" class="btn ghost" type="button" aria-label="Следующий месяц помощника">→</button><button id="helperToday" class="btn secondary" type="button">Сейчас</button></div>
+<p class="small">Отметь, что оплачено. Дата подставляется при отметке — её можно изменить. Отметки сохраняются отдельно для каждого месяца.</p>
+<div id="helperPaymentColumns" class="helper-payment-columns"></div>
+<p class="small">Это список распределения выплат. Сами расходы записывай в «Казне → Расходы».</p>
+<div class="helper-payment-column helper-balance"><label for="helperBalance">Остаток месяца, ₽</label><input id="helperBalance" type="text" inputmode="decimal" maxlength="24" placeholder="Введи сумму"><span class="small" id="helperBalanceStatus" role="status"></span></div>
+</details>
+<details id="goals" class="card planner-fold" data-fold-key="yearGoals" open><summary>🎯 Цели на год <span class="badge" id="yearGoalCount">Выполнено 0 из 0</span></summary><div class="planner-fold-body"><div class="row-between"><strong>Мои цели</strong><button class="btn secondary big" id="addYearGoal">+ Добавить цель</button></div><div id="yearGoals"></div></div></details>
 <details id="monthlyGoalBox" class="day-card monthly-goal-box planner-fold" data-fold-key="monthlyGoals" open><summary>🎯 Цели на месяц <span class="badge" id="monthlyGoalPeriod"></span></summary><div class="planner-fold-body">
         
         <p class="small">Выбери до трёх целей из общего списка или добавь новую здесь. Изменения названий появятся автоматически.</p>
@@ -730,13 +745,7 @@ body input[type=file]:focus-visible{outline:2px solid var(--accent);outline-offs
           <button class="btn" type="submit">+ Добавить цель</button>
         </form>
         <p class="small" id="monthlyGoalHint" aria-live="polite"></p>
-<details id="salaryPaymentHelper" class="salary-payment-helper" open>
-<summary>💳 Помощник по выплатам</summary>
-<div class="month-nav helper-month-nav"><button id="helperPrev" class="btn ghost" type="button" aria-label="Предыдущий месяц помощника">←</button><strong id="helperMonthTitle"></strong><button id="helperNext" class="btn ghost" type="button" aria-label="Следующий месяц помощника">→</button><button id="helperToday" class="btn secondary" type="button">Сейчас</button></div>
-<p class="small">Отметь, что оплачено. Дата подставляется при отметке — её можно изменить. Отметки сохраняются отдельно для каждого месяца.</p>
-<div id="helperPaymentColumns" class="helper-payment-columns"></div>
-<p class="small">Это список распределения выплат. Сами расходы записывай в «Казне → Расходы».</p>
-</details>
+
       </div></details>
       <details class="inbox-panel day-card" open>
         <summary>📥 Входящие <span id="inboxCount"></span></summary>
@@ -827,12 +836,13 @@ body input[type=file]:focus-visible{outline:2px solid var(--accent);outline-offs
 <p class="small">План можно менять для каждого месяца. Для внезапных трат и праздников план по умолчанию — 0 ₽: просто записывай расходы и пояснение. Факт в новом месяце начинается с нуля.</p>
 <div id="budgetKpis" class="budget-kpis" aria-live="polite"></div>
 <div class="scrollbox"><table class="budget-table"><thead><tr><th>Категория</th><th>План, ₽</th><th>Факт, ₽</th><th>Остаток, ₽</th></tr></thead><tbody id="budgetRows"></tbody></table></div>
-<details class="budget-chart-panel planner-fold" data-fold-key="categoryMonth"><summary>План и факт по категориям</summary><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span><span class="budget-over-key">● Факт выше плана</span></div><div id="budgetCategoryChart" class="budget-chart-scroll"></div></details>
+
 <div class="budget-entry"><h3>Записать расход</h3><form id="budgetExpenseForm" class="budget-expense-form">
 <label>Дата<input id="budgetExpenseDate" type="date" required></label><label>Категория<select id="budgetExpenseCategory"></select></label>
 <label>Сумма, ₽<input id="budgetExpenseAmount" type="text" inputmode="decimal" placeholder="Например, 1250,50" required></label>
 <label>Комментарий<input id="budgetExpenseNote" type="text" maxlength="300" placeholder="Необязательно"></label>
 <button class="btn" type="submit">+ Записать</button></form><p class="small" id="budgetExpenseMessage" role="status"></p></div>
+<details class="budget-chart-panel planner-fold" data-fold-key="categoryMonth"><summary>План и факт по категориям</summary><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span><span class="budget-over-key">● Факт выше плана</span></div><div id="budgetCategoryChart" class="budget-chart-scroll"></div></details>
 <details class="budget-journal" open><summary>Расходы выбранного месяца <span id="budgetExpenseCount"></span></summary><div id="budgetExpenseList"></div></details>
 <div class="budget-chart-panel"><h3>План и факт по месяцам</h3><p class="small">Здесь показаны сохранённые месяцы, включая будущие. Нулевой факт означает, что расходы ещё не внесены.</p><div id="budgetHistoryChart" class="budget-chart-scroll"></div></div>
 
@@ -1055,6 +1065,8 @@ const defaults={
   expenseBudgets:{},
   salaryMonths:{},
   salaryPaymentHelper:{},
+  salaryHelperCustom:{},
+  salaryHelperBalances:{},
   houseplants:null,
   savings52:{active:null,history:[],pots:[],activeId:null},
   ofzYears:{},
@@ -1165,7 +1177,31 @@ const salaryHelperGroups=[
 {id:'food-me',name:'Еда мне',amount:7000},
 {id:'food-cats',name:'Еда котам',amount:7000},
 {id:'codex',name:'Кодекс',amount:9000}
+]},
+{id:'students-sber',name:'Ученики — в Сбер ЧП',items:[
+{id:'first',name:'Первый',amount:7000},
+{id:'second',name:'Вторая',amount:7000},
+{id:'third',name:'Третья',amount:4000},
+{id:'fourth',name:'Четвёртая',amount:4000}
 ]}];
+function helperGroupItems(group){
+  return [...group.items,...(state.salaryHelperCustom?.[group.id]||[])];
+}
+function addHelperItem(groupId,name,amount){
+  name=name.trim();
+  const cents=budgetParseCents(amount);
+  if(!name||!cents||!salaryHelperGroups.some(group=>group.id===groupId))return false;
+  state.salaryHelperCustom??={};
+  (state.salaryHelperCustom[groupId]??=[]).push({id:crypto.randomUUID(),name,amount:cents/100});
+  save();
+  return true;
+}
+function helperBalanceCents(raw){
+  const value=raw.trim().replace(/^−/,'-');
+  const negative=value.startsWith('-');
+  const cents=budgetParseCents(negative?value.slice(1):value);
+  return cents===null?null:(negative?-cents:cents);
+}
 let helperPaymentPeriod=monthlyFocusPeriod().key;
 let helperPaymentCalendar=helperPaymentPeriod;
 function helperPaymentKey(group,item){return group+':'+item}
@@ -1174,7 +1210,7 @@ function helperPaymentRecord(month){
 }
 function setHelperPayment(month,groupId,itemId,checked,date){
   const group=salaryHelperGroups.find(group=>group.id===groupId);
-  if(!group||!group.items.some(item=>item.id===itemId)||!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))return false;
+  if(!group||!helperGroupItems(group).some(item=>item.id===itemId)||!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))return false;
   const paidDate=checked?(date||localPlannerDate()):'';
   if(checked){
     if(!/^\d{4}-\d{2}-\d{2}$/.test(paidDate))return false;
@@ -1189,25 +1225,28 @@ function setHelperPayment(month,groupId,itemId,checked,date){
 function renderSalaryPaymentHelper(){
   const now=monthlyFocusPeriod().key;
   if(now!==helperPaymentCalendar){if(helperPaymentPeriod===helperPaymentCalendar)helperPaymentPeriod=now;helperPaymentCalendar=now}
-  const details=document.getElementById('salaryPaymentHelper');
-  details.open=state.settings.payHelperCollapsed!==true;
+  const balance=document.getElementById('helperBalance');
+  balance.value=state.salaryHelperBalances?.[helperPaymentPeriod]??'';
+  balance.dataset.month=helperPaymentPeriod;
+  document.getElementById('helperBalanceStatus').textContent='';
   document.getElementById('helperMonthTitle').textContent=mandatoryMonthTitle(helperPaymentPeriod);
   document.getElementById('helperToday').disabled=helperPaymentPeriod===now;
   const columns=document.getElementById('helperPaymentColumns');columns.replaceChildren();
   const record=helperPaymentRecord(helperPaymentPeriod);
   salaryHelperGroups.forEach(group=>{
-    const column=document.createElement('div');column.className='helper-payment-column';
+    const items=helperGroupItems(group);
+    const column=document.createElement('div');column.className='helper-payment-column helper-'+group.id;
     const heading=document.createElement('h4');heading.textContent=group.name;column.appendChild(heading);
-    const count=group.items.filter(item=>record[helperPaymentKey(group.id,item.id)]?.checked).length;
+    const count=items.filter(item=>record[helperPaymentKey(group.id,item.id)]?.checked).length;
     const info=document.createElement('p');info.className='small';
-    info.textContent='Отмечено '+count+' из '+group.items.length+' · суммы '+budgetMoney(group.items.reduce((sum,item)=>sum+(item.amount||0)*100,0));
+    info.textContent='Отмечено '+count+' из '+items.length+' · суммы '+budgetMoney(items.reduce((sum,item)=>sum+Math.round((item.amount||0)*100),0));
     column.appendChild(info);
-    group.items.forEach(item=>{
+    items.forEach(item=>{
       const mark=record[helperPaymentKey(group.id,item.id)]||{},row=document.createElement('div');row.className='helper-payment-row';
       const label=document.createElement('label'),checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=!!mark.checked;
       const text=document.createElement('span');text.textContent=item.name;
       label.append(checkbox,text);row.appendChild(label);
-      if(item.amount!==null){const amount=document.createElement('strong');amount.className='helper-payment-amount';amount.textContent=budgetMoney(item.amount*100);row.appendChild(amount)}
+      if(item.amount!==null){const amount=document.createElement('strong');amount.className='helper-payment-amount';amount.textContent=budgetMoney(Math.round(item.amount*100));row.appendChild(amount)}
       const dateLabel=document.createElement('label');dateLabel.className='helper-payment-date';
       const dateText=document.createElement('span');dateText.textContent='Дата';
       const date=document.createElement('input');date.type='date';date.value=mark.paidDate||'';date.disabled=!mark.checked;date.setAttribute('aria-label','Дата: '+group.name+' — '+item.name);
@@ -1222,13 +1261,27 @@ function renderSalaryPaymentHelper(){
       if(mark.checked)row.classList.add('helper-payment-done');
       column.appendChild(row);
     });
+    const form=document.createElement('form');form.className='helper-add-item';
+    form.innerHTML='<input type="text" maxlength="100" required placeholder="Название пункта" aria-label="Название нового пункта"><input type="text" inputmode="decimal" maxlength="24" required placeholder="Сумма, ₽" aria-label="Сумма нового пункта"><button class="btn secondary" type="submit">+ Пункт</button>';
+    form.onsubmit=event=>{
+      event.preventDefault();
+      if(!addHelperItem(group.id,form.elements[0].value,form.elements[1].value)){toast('Укажи название и сумму больше нуля');return;}
+      renderSalaryPaymentHelper();
+    };
+    column.appendChild(form);
     columns.appendChild(column);
   });
 }
-document.getElementById('salaryPaymentHelper').addEventListener('toggle',e=>{
-  const collapsed=!e.target.open;
-  if(state.settings.payHelperCollapsed!==collapsed){state.settings.payHelperCollapsed=collapsed;save()}
-});
+document.getElementById('helperBalance').oninput=event=>{
+  const input=event.target,raw=input.value.trim(),cents=helperBalanceCents(raw);
+  const status=document.getElementById('helperBalanceStatus');
+  if(raw&&cents===null){status.textContent='Укажи сумму с точностью до копейки';return;}
+  status.textContent='';
+  state.salaryHelperBalances??={};
+  if(raw)state.salaryHelperBalances[input.dataset.month]=String(cents/100).replace('.',',');
+  else delete state.salaryHelperBalances[input.dataset.month];
+  save();
+};
 document.getElementById('helperPrev').onclick=()=>{helperPaymentPeriod=shiftMandatoryMonth(helperPaymentPeriod,-1);renderSalaryPaymentHelper()};
 document.getElementById('helperNext').onclick=()=>{helperPaymentPeriod=shiftMandatoryMonth(helperPaymentPeriod,1);renderSalaryPaymentHelper()};
 document.getElementById('helperToday').onclick=()=>{helperPaymentPeriod=monthlyFocusPeriod().key;renderSalaryPaymentHelper()};
