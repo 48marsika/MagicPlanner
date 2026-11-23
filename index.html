@@ -699,6 +699,12 @@ body input[type=file]:focus-visible{outline:2px solid var(--accent);outline-offs
 .helper-add-item{display:grid;gap:8px;margin-top:12px}
 .helper-balance{display:grid;gap:8px;margin-top:14px}
 .helper-balance input,.helper-add-item input{width:100%;min-width:0;padding:9px;border:1px solid var(--line);background:var(--panel);color:var(--text)}
+
+#helperPaymentColumns.helper-short-layout{grid-template-areas:none}
+#helperPaymentColumns.helper-short-layout>.helper-payment-column{grid-area:auto}
+.helper-payment-row>.helper-edit{flex-basis:100%;min-width:0}
+.helper-edit>summary{cursor:pointer;font-size:13px;color:var(--muted)}
+.helper-edit-actions{display:flex;gap:6px;flex-wrap:wrap}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -1066,6 +1072,8 @@ const defaults={
   salaryMonths:{},
   salaryPaymentHelper:{},
   salaryHelperCustom:{},
+  salaryHelperWindowEdits:{},
+  salaryHelperItemEdits:{},
   salaryHelperBalances:{},
   houseplants:null,
   savings52:{active:null,history:[],pots:[],activeId:null},
@@ -1185,7 +1193,9 @@ const salaryHelperGroups=[
 {id:'fourth',name:'Четвёртая',amount:4000}
 ]}];
 function helperGroupItems(group){
-  return [...group.items,...(state.salaryHelperCustom?.[group.id]||[])];
+  return [...group.items,...(state.salaryHelperCustom?.[group.id]||[])]
+    .map(item=>({...item,...state.salaryHelperItemEdits?.[helperPaymentKey(group.id,item.id)]}))
+    .filter(item=>!item.deleted);
 }
 function addHelperItem(groupId,name,amount){
   name=name.trim();
@@ -1222,6 +1232,67 @@ function setHelperPayment(month,groupId,itemId,checked,date){
   state.salaryPaymentHelper[month][helperPaymentKey(groupId,itemId)]={checked:!!checked,paidDate};
   return true;
 }
+
+function helperEditor(name,amount,label,onSave,onDelete){
+  const details=document.createElement('details');
+  details.className='helper-edit';
+  const summary=document.createElement('summary');
+  summary.textContent='Изменить '+label;
+  details.appendChild(summary);
+  const form=document.createElement('form');
+  form.className='helper-add-item';
+  const nameInput=document.createElement('input');
+  nameInput.required=true;
+  nameInput.maxLength=100;
+  nameInput.value=name;
+  nameInput.setAttribute('aria-label','Название');
+  form.appendChild(nameInput);
+  const amountInput=document.createElement('input');
+  if(amount!==null){
+    amountInput.inputMode='decimal';
+    amountInput.required=true;
+    amountInput.maxLength=24;
+    amountInput.value=String(amount).replace('.',',');
+    amountInput.setAttribute('aria-label','Сумма, ₽');
+    form.appendChild(amountInput);
+  }
+  const actions=document.createElement('div');
+  actions.className='helper-edit-actions';
+  const apply=document.createElement('button');
+  apply.type='submit';
+  apply.className='btn secondary';
+  apply.textContent='Сохранить';
+  const remove=document.createElement('button');
+  remove.type='button';
+  remove.className='btn ghost';
+  remove.textContent='Удалить '+label;
+  remove.onclick=()=>{
+    if(!confirm('Удалить '+label+' «'+name+'» из помощника во всех месяцах?'))return;
+    onDelete();
+    save();
+    renderSalaryPaymentHelper();
+  };
+  actions.append(apply,remove);
+  const status=document.createElement('span');
+  status.className='small';
+  status.setAttribute('role','status');
+  form.append(actions,status);
+  form.onsubmit=event=>{
+    event.preventDefault();
+    const nextName=nameInput.value.trim();
+    const cents=amount===null?null:budgetParseCents(amountInput.value);
+    if(!nextName||(amount!==null&&!cents)){
+      status.textContent='Укажи название'+(amount===null?'':' и сумму больше нуля');
+      return;
+    }
+    onSave(nextName,cents===null?null:cents/100);
+    save();
+    renderSalaryPaymentHelper();
+  };
+  details.appendChild(form);
+  return details;
+}
+
 function renderSalaryPaymentHelper(){
   const now=monthlyFocusPeriod().key;
   if(now!==helperPaymentCalendar){if(helperPaymentPeriod===helperPaymentCalendar)helperPaymentPeriod=now;helperPaymentCalendar=now}
@@ -1233,10 +1304,20 @@ function renderSalaryPaymentHelper(){
   document.getElementById('helperToday').disabled=helperPaymentPeriod===now;
   const columns=document.getElementById('helperPaymentColumns');columns.replaceChildren();
   const record=helperPaymentRecord(helperPaymentPeriod);
-  salaryHelperGroups.forEach(group=>{
+  const groups=salaryHelperGroups
+    .map(group=>({...group,...state.salaryHelperWindowEdits?.[group.id]}))
+    .filter(group=>!group.deleted);
+  columns.classList.toggle('helper-short-layout',groups.length<3);
+  if(!groups.length)columns.textContent='Все окна удалены.';
+  groups.forEach(group=>{
     const items=helperGroupItems(group);
     const column=document.createElement('div');column.className='helper-payment-column helper-'+group.id;
     const heading=document.createElement('h4');heading.textContent=group.name;column.appendChild(heading);
+    column.appendChild(helperEditor(group.name,null,'окно',name=>{
+      (state.salaryHelperWindowEdits??={})[group.id]={name};
+    },()=>{
+      (state.salaryHelperWindowEdits??={})[group.id]={deleted:true};
+    }));
     const count=items.filter(item=>record[helperPaymentKey(group.id,item.id)]?.checked).length;
     const info=document.createElement('p');info.className='small';
     info.textContent='Отмечено '+count+' из '+items.length+' · суммы '+budgetMoney(items.reduce((sum,item)=>sum+Math.round((item.amount||0)*100),0));
@@ -1258,6 +1339,12 @@ function renderSalaryPaymentHelper(){
         if(!setHelperPayment(helperPaymentPeriod,group.id,item.id,true,date.value)){date.value=helperPaymentRecord(helperPaymentPeriod)[helperPaymentKey(group.id,item.id)]?.paidDate||'';toast('Укажи корректную дату');return;}
         save();
       };
+      const key=helperPaymentKey(group.id,item.id);
+      row.appendChild(helperEditor(item.name,item.amount,'пункт',(name,amount)=>{
+        (state.salaryHelperItemEdits??={})[key]={name,amount};
+      },()=>{
+        (state.salaryHelperItemEdits??={})[key]={deleted:true};
+      }));
       if(mark.checked)row.classList.add('helper-payment-done');
       column.appendChild(row);
     });
