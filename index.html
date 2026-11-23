@@ -753,7 +753,7 @@ body input[type=file]:focus-visible{outline:2px solid var(--accent);outline-offs
         <p class="small" id="monthlyGoalHint" aria-live="polite"></p>
 
       </div></details>
-      <details class="inbox-panel day-card" open>
+      <details hidden class="inbox-panel day-card" open>
         <summary>📥 Входящие <span id="inboxCount"></span></summary>
         <p class="small">Запиши дело сейчас — день можно выбрать позже.</p>
         <form id="inboxForm" class="inbox-form"><input id="inboxText" class="text-input" placeholder="Записать задачу или идею…" aria-label="Новая запись во входящих" required maxlength="2000"><button class="btn" type="submit">Добавить</button></form>
@@ -772,7 +772,7 @@ body input[type=file]:focus-visible{outline:2px solid var(--accent);outline-offs
         </form>
       </dialog>
     </div>
-  <details id="mandatory" class="card planner-fold" data-fold-key="mandatory" open><summary>✅ Обязательное на месяц</summary><div class="planner-fold-body">
+  <details hidden id="mandatory" class="card planner-fold" data-fold-key="mandatory" open><summary>✅ Обязательное на месяц</summary><div class="planner-fold-body">
 <div class="card">
   
   <div class="month-nav"><button id="mandatoryPrev" class="btn ghost" aria-label="Предыдущий месяц">←</button><strong id="mandatoryMonthTitle"></strong><button id="mandatoryNext" class="btn ghost" aria-label="Следующий месяц">→</button><button id="mandatoryToday" class="btn secondary">Текущий месяц</button></div>
@@ -783,7 +783,7 @@ body input[type=file]:focus-visible{outline:2px solid var(--accent);outline-offs
 </div>
 
 </div></details>
-<details id="habits" class="card planner-fold" data-fold-key="habits" open><summary>🌱 Привычки</summary><div class="planner-fold-body">
+<details hidden id="habits" class="card planner-fold" data-fold-key="habits" open><summary>🌱 Привычки</summary><div class="planner-fold-body">
     <div class="card">
       <div class="row-between"><span class="small">Сегодня и прогресс за месяц и год</span><button class="btn" id="addHabitBtn">+ Привычка</button></div>
       <div class="habit-summary-list" id="habitProgress" aria-label="Прогресс по привычкам"></div>
@@ -831,9 +831,7 @@ body input[type=file]:focus-visible{outline:2px solid var(--accent);outline-offs
 <div id="budgetSummaryKpis" class="budget-kpis"></div>
 <h4>Сравнение месяцев</h4><div class="scrollbox" tabindex="0" aria-label="Сравнение расходов по месяцам"><table class="budget-table budget-summary-table"><thead><tr><th>Месяц</th><th>План</th><th>Факт</th><th>Остаток</th><th>Потрачено от плана</th><th>Изменение факта</th></tr></thead><tbody id="budgetSummaryMonths"></tbody><tfoot id="budgetSummaryMonthsFoot"></tfoot></table></div>
 <p class="small">Изменение факта сравнивается с предыдущим календарным месяцем, только когда оба месяца завершены. Текущий месяц ещё неполный.</p>
-<details class="budget-chart-panel budget-dynamics"><summary>Динамика плана и расходов</summary><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span></div><div id="budgetTrendChart" class="budget-chart-scroll"></div></details>
 <h4>Категории по месяцам</h4><div class="scrollbox" tabindex="0" aria-label="Сводка категорий по месяцам"><table class="budget-table budget-summary-table"><thead id="budgetSummaryCategoriesHead"></thead><tbody id="budgetSummaryCategories"></tbody><tfoot id="budgetSummaryCategoriesFoot"></tfoot></table></div>
-<details class="budget-chart-panel planner-fold" data-fold-key="categoryYear"><summary>План и факт по категориям за выбранные месяцы</summary><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span><span class="budget-over-key">● Перерасход</span></div><div id="budgetSummaryCategoryChart" class="budget-chart-scroll"></div></details>
 </div>
 </div>
 <div id="treasury-expenses" class="budget-card" style="display:none">
@@ -848,7 +846,6 @@ body input[type=file]:focus-visible{outline:2px solid var(--accent);outline-offs
 <label>Сумма, ₽<input id="budgetExpenseAmount" type="text" inputmode="decimal" placeholder="Например, 1250,50" required></label>
 <label>Комментарий<input id="budgetExpenseNote" type="text" maxlength="300" placeholder="Необязательно"></label>
 <button class="btn" type="submit">+ Записать</button></form><p class="small" id="budgetExpenseMessage" role="status"></p></div>
-<details class="budget-chart-panel planner-fold" data-fold-key="categoryMonth"><summary>План и факт по категориям</summary><div class="budget-legend"><span class="budget-plan-key">● План</span><span class="budget-actual-key">● Факт</span><span class="budget-over-key">● Факт выше плана</span></div><div id="budgetCategoryChart" class="budget-chart-scroll"></div></details>
 <details class="budget-journal" open><summary>Расходы выбранного месяца <span id="budgetExpenseCount"></span></summary><div id="budgetExpenseList"></div></details>
 <div class="budget-chart-panel"><h3>План и факт по месяцам</h3><p class="small">Здесь показаны сохранённые месяцы, включая будущие. Нулевой факт означает, что расходы ещё не внесены.</p><div id="budgetHistoryChart" class="budget-chart-scroll"></div></div>
 
@@ -1729,7 +1726,7 @@ function renderTodayPanel(){
   updateTodayCount();
 }
 function renderWeek(){
-  renderRecurringTasks();renderInbox();ensureWeekMetadata();
+  renderRecurringTasks();ensureWeekMetadata();
   document.getElementById('weekPeriodLabel').textContent=weekRangeLabel(state.weekStart);
   renderWeekHistory();renderMonthlyFocus();
   const grid=document.getElementById('weekGrid');grid.replaceChildren();
@@ -1828,6 +1825,7 @@ function renderHabits(){
   });
 }
 function refreshHabitToday(){
+  if(document.getElementById('habits').hidden)return;
   const now=new Date();
   const k=habitKey(now.getFullYear(),now.getMonth(),now.getDate());
   if(lastRenderedHabitDate!==k)renderHabits();
@@ -2147,9 +2145,8 @@ function openPlannerView(view){
   if(view==='misc')selectMiscPanel(miscTarget);
   if(view==='goals')view='week';
   if(view==='mandatory'||view==='habits')view='week';
-  if(view==='week'){openCurrentMandatoryMonth();renderTodayPanel()}
+  if(view==='week')renderTodayPanel();
   if(view==='treasury')openTreasuryOverview();
-  if(view==='mandatory')openCurrentMandatoryMonth();
   document.querySelectorAll('.navbtn').forEach(button=>button.classList.toggle('active',button.dataset.view===view));
   document.querySelectorAll('.view').forEach(panel=>panel.classList.toggle('active',panel.id===view));
   window.scrollTo({top:0,behavior:'smooth'});
@@ -2253,6 +2250,7 @@ document.getElementById('mandatoryNext').onclick=()=>{const next=shiftMandatoryM
 function openCurrentMandatoryMonth(){mandatoryPeriod=monthlyFocusPeriod().key;renderMandatoryMonth()}
 document.getElementById('mandatoryToday').onclick=openCurrentMandatoryMonth;
 function refreshMandatoryCalendar(){
+  if(document.getElementById('mandatory').hidden)return;
   const current=monthlyFocusPeriod().key;
   if(current!==mandatoryCalendarMonth){mandatoryCalendarMonth=current;mandatoryPeriod=current;renderMandatoryMonth()}
 }
@@ -2352,7 +2350,6 @@ function renderBudgetCharts(){
     if(actual)actual.textContent=budgetMoney(row.actual);
     if(rest){rest.textContent=budgetMoney(row.remaining);rest.classList.toggle('budget-over-text',row.remaining<0)}
   });
-  document.getElementById('budgetCategoryChart').innerHTML=budgetSvgBars(totals.rows,'План и фактические расходы за '+mandatoryMonthTitle(budgetPeriod),'план','факт');
   const history=Object.keys(state.expenseBudgets).sort().map(key=>{const t=expenseBudgetTotals(state.expenseBudgets[key]);return {name:mandatoryMonthTitle(key),plan:t.plan,actual:t.actual}});
   document.getElementById('budgetHistoryChart').innerHTML=budgetSvgBars(history,'Сравнение бюджета по месяцам','план','факт');
   renderBudgetSummary();
@@ -2470,8 +2467,6 @@ function renderBudgetSummary(){
   document.getElementById('budgetSummaryCategoriesHead').innerHTML='<tr><th>Категория</th>'+data.months.map(month=>'<th>'+mandatoryMonthTitle(month.key)+' · факт</th>').join('')+'<th>План всего</th><th>Факт всего</th><th>Остаток</th></tr>';
   document.getElementById('budgetSummaryCategories').innerHTML=data.categories.map(category=>'<tr><th scope="row">'+esc(category.name)+'</th>'+data.months.map(month=>cell(budgetMoney(month.rows.find(r=>r.id===category.id).actual))).join('')+cell(budgetMoney(category.plan))+cell(budgetMoney(category.actual))+cell(budgetMoney(category.remaining),category.remaining<0)+'</tr>').join('');
   document.getElementById('budgetSummaryCategoriesFoot').innerHTML='<tr><th>Итого</th>'+data.months.map(month=>cell(budgetMoney(month.actual))).join('')+cell(budgetMoney(data.plan))+cell(budgetMoney(data.actual))+cell(budgetMoney(data.remaining),data.remaining<0)+'</tr>';
-  document.getElementById('budgetTrendChart').innerHTML=budgetTrendSvg(data.months);
-  document.getElementById('budgetSummaryCategoryChart').innerHTML=data.months.length?budgetSvgBars(data.categories,'Суммарный план и факт по категориям за '+budgetSummaryYear,'план','факт'):'<p class="small">Нет данных за выбранный год.</p>';
 }
 document.getElementById('budgetSummaryYear').onchange=e=>{budgetSummaryYear=e.target.value;renderBudgetSummary()};
 
@@ -3042,9 +3037,7 @@ function renderAll(){
   bindPlannerFolds();
   renderSavings52();
   renderHouseplants();
-  renderMandatoryMonth();
   renderWeek();
-  renderHabits();
   renderGoals();
   renderTreasury();
   renderBody();
